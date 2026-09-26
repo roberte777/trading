@@ -102,11 +102,20 @@ class Backtester:
         else:
             start = to_session(self.config.start)
             if start < warmed:
-                log.warning(
-                    "%s: start %s is before the fully warmed start %s; early decisions see partial history",
+                idx = self.data.index
+                late = []
+                for sym in self.strategy.data_symbols():
+                    first = self.data.first_valid(sym)
+                    ready_i = int(idx.searchsorted(first)) + self.strategy.warmup()
+                    if ready_i >= len(idx) or idx[ready_i] > start:
+                        late.append(f"{sym} (data from {first.date()})")
+                log.info(
+                    "%s: at the %s start these symbols lack %d sessions of history and must be "
+                    "treated as not yet available: %s",
                     self.strategy.name,
                     start.date(),
-                    warmed.date(),
+                    self.strategy.warmup(),
+                    ", ".join(late),
                 )
         start_i = max(int(idx.searchsorted(start)), 1)
         end_i = (
