@@ -931,7 +931,7 @@ function methods() {
     `Costs: ${costs.slippage_bps} bps adverse slippage per fill, plus FINRA TAF (${costs.taf_per_share}/share sold) and SEC fees (${costs.sec_fee_rate} of sale value). Alpaca charges no commission.`,
     `${rules.fractional ? "Fractional" : "Whole"}-share sizing from $${(a.initial_capital || 0).toLocaleString()} starting capital. No leverage (gross ≤ ${rules.max_gross || 1}). Idle cash ${a.cash_interest ? "earns T-bill rates" : "earns nothing, so strategies hold BIL for T-bill returns"}.`,
     `Data: ${a.data_provider || "yahoo"} total-return (split- and dividend-adjusted) daily bars.${a.use_proxies ? " Before each ETF existed, its history is extended with an older mutual fund or index (the “Proxy data” column shows the share of exposure that was synthetic; the “ETF era only” variant re-runs without it)." : ""}`,
-    `Sharpe ratios are excess over the 13-week T-bill (^IRX). The Deflated Sharpe Ratio (Bailey & López de Prado 2014) uses ${P.n_trials} trials: every strategy and every robustness variant run.`,
+    `Sharpe ratios are excess over the 13-week T-bill (^IRX). The Deflated Sharpe Ratio (Bailey & López de Prado 2014) accounts for ${P.n_trials} trials (every strategy and robustness variant run). Their returns have an average correlation of ${num(P.avg_trial_correlation)}, which makes about ${Math.round(P.n_trials_effective)} independent trials.`,
     "Robustness variants run over each strategy's own full window. Post-publication splits use the first public date of each strategy's source.",
     "Past performance, especially backtested performance, does not guarantee future results. Paper trade before committing capital.",
   ];

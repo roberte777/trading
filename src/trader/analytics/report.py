@@ -95,13 +95,39 @@ def _sample_positions(n: int, max_points: int = MAX_POINTS) -> np.ndarray:
     return pos
 
 
-def _variant_sharpes(res: BacktestResult) -> list[float]:
-    out = []
-    for v in res.variants.values():
-        m = v.get("metrics")
-        if isinstance(m, dict) and m.get("sharpe_daily") is not None:
-            out.append(float(m["sharpe_daily"]))
-    return out
+def trial_statistics(results: list[BacktestResult], start, end) -> dict[str, Any]:
+    """Every configuration tried (base runs and robustness variants) on the window.
+
+    Returns per-period Sharpe ratios (for the dispersion term of the Deflated Sharpe
+    Ratio) and the effective number of independent trials
+    ``N_eff = rho + (1 - rho) * M`` where ``rho`` is the average pairwise correlation
+    of the trials' returns (Bailey & López de Prado). Variants of one strategy are
+    highly correlated, so ``N_eff`` is far below the raw count ``M``.
+    """
+    series: dict[str, pd.Series] = {}
+    rf: dict[str, pd.Series] = {}
+    for res in results:
+        series[f"{res.strategy}:base"] = res.returns.loc[start:end]
+        rf[f"{res.strategy}:base"] = res.rf
+        for col in res.variant_returns.columns:
+            series[f"{res.strategy}:{col}"] = res.variant_returns[col].loc[start:end]
+            rf[f"{res.strategy}:{col}"] = res.rf
+    panel = pd.DataFrame(series)
+    sharpes = []
+    for name in panel.columns:
+        r = panel[name].dropna()
+        ex = r - rf[name].reindex(r.index).fillna(0.0)
+        sd = ex.std(ddof=1)
+        if len(ex) > 20 and sd > 0:
+            sharpes.append(float(ex.mean() / sd))
+    m = len(sharpes)
+    if panel.shape[1] > 1:
+        c = panel.corr().to_numpy()
+        rho = float(np.nanmean(c[~np.eye(len(c), dtype=bool)]))
+    else:
+        rho = 1.0
+    rho = min(max(rho, 0.0), 1.0)
+    return {"sharpes": sharpes, "n": m, "avg_correlation": rho, "n_effective": rho + (1 - rho) * m}
 
 
 def _scorecard(entry: dict[str, Any], spy: dict[str, Any] | None) -> list[dict[str, Any]]:
@@ -132,7 +158,7 @@ def _scorecard(entry: dict[str, Any], spy: dict[str, Any] | None) -> list[dict[s
         add(
             "Significant after multiple testing",
             dsr >= 0.95,
-            f"Deflated Sharpe {dsr:.2f} over {entry['dsr']['n_trials']} trials (need ≥ 0.95)",
+            f"Deflated Sharpe {dsr:.2f} over {entry['dsr']['n_trials']} effective trials (need ≥ 0.95)",
         )
     c2 = v.get("costs_2x", {}).get("sharpe")
     if c2 is not None and vbase:
@@ -185,12 +211,9 @@ def build_payload(
     title: str = "Strategy comparison",
 ) -> dict[str, Any]:
     start, end = common_window(results)
-    all_trials: list[float] = []
-    for res in results:
-        r = res.returns.loc[start:end]
-        ex = (r - res.rf.reindex(r.index).fillna(0.0)).dropna()
-        all_trials.append(float(ex.mean() / ex.std(ddof=1)))
-        all_trials.extend(_variant_sharpes(res))
+    trials = trial_statistics(results, start, end)
+    all_trials = trials["sharpes"]
+    n_eff = max(1, round(trials["n_effective"]))
 
     entries: list[dict[str, Any]] = []
     rets: dict[str, pd.Series] = {}
@@ -229,7 +252,7 @@ def build_payload(
                 "data_first_real": res.meta.get("data_first_real", {}),
                 "metrics": m,
                 "bootstrap": bootstrap_ci(r, rf, b, n_boot=600),
-                "dsr": deflated_sharpe(ex, all_trials),
+                "dsr": deflated_sharpe(ex, all_trials, n_trials=n_eff),
                 "oos": split_metrics(r, rf, b, res.meta.get("publication_date")),
                 "crises": crisis_returns(r),
                 "yearly": {str(k): float(v) for k, v in yearly_returns(r).items()},
@@ -286,7 +309,9 @@ def build_payload(
             "data_provider": first.meta.get("data_provider"),
             "use_proxies": first.meta.get("use_proxies"),
         },
-        "n_trials": len(all_trials),
+        "n_trials": trials["n"],
+        "n_trials_effective": trials["n_effective"],
+        "avg_trial_correlation": trials["avg_correlation"],
         "strategies": entries,
         "series": series,
         "correlation": {"ids": list(corr.columns), "matrix": corr.round(3).to_numpy().tolist()},
@@ -326,7 +351,8 @@ def render_markdown(payload: dict[str, Any]) -> str:
         "",
         f"Common window **{w['start']} → {w['end']}** ({w['years']:.1f} years). Execution: `{payload['assumptions'].get('execution')}`; "
         f"slippage {(payload['assumptions'].get('costs') or {}).get('slippage_bps')} bps per side. "
-        f"Deflated Sharpe uses {payload['n_trials']} trials.",
+        f"Deflated Sharpe uses {payload['n_trials']} trials "
+        f"(≈{payload['n_trials_effective']:.0f} effective at average correlation {payload['avg_trial_correlation']:.2f}).",
         "",
         "| Strategy | CAGR | Vol | Sharpe (90% CI) | Max DD | Calmar | OOS Sharpe | DSR | Turnover | Score |",
         "|---|---:|---:|---|---:|---:|---:|---:|---:|---:|",

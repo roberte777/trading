@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 
+import pandas as pd
+
 from trader.analytics.report import (
     build_payload,
     find_result_dirs,
@@ -24,7 +26,9 @@ def _results(tmp_path):
     for strat in (BuyAndHold(), SixtyForty()):
         res = Backtester(strat, data, cal, cfg).run()
         res.metrics = evaluate(res, bootstrap=False)
-        res.variants = run_suite(strat, data, cal, cfg, workers=1)
+        rets = {}
+        res.variants = run_suite(strat, data, cal, cfg, workers=1, returns_out=rets)
+        res.variant_returns = pd.DataFrame(rets)
         res.save(tmp_path / strat.name)
         out.append(tmp_path / strat.name)
     return out
@@ -40,7 +44,9 @@ def test_round_trip_and_compare(tmp_path):
 
     payload = build_payload(loaded)
     json.dumps(payload, allow_nan=False)  # strictly valid JSON: no NaN/inf
-    assert payload["n_trials"] >= 2
+    assert payload["n_trials"] >= 10
+    assert 1 <= payload["n_trials_effective"] < payload["n_trials"]
+    assert not original.variant_returns.empty
     ids = {s["id"] for s in payload["strategies"]}
     assert ids == {"buy_and_hold", "sixty_forty"}
     for s in payload["strategies"]:
