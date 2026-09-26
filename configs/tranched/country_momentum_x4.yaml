@@ -1,0 +1,10 @@
+# Country equity momentum (AMP 2013, top tercile), split into 4 staggered monthly tranches (rebalance timing luck).
+strategy: country_momentum
+params: {}
+execution:
+  mode: next_open
+  tranches: 4
+data:
+  use_proxies: true
+backtest:
+  start: 2000-01-03

@@ -51,3 +51,8 @@ compare-all workers="4":
 compare-etf-era workers="4":
     for cfg in configs/strategies/*.yaml; do name=$(basename "$cfg" .yaml); trader backtest "$cfg" --suite --offline --no-proxies --start 2008-07-01 --workers {{workers}} --out "results-etf/$name" > /dev/null || exit 1; done
     trader compare results-etf --out reports/comparison-etf-era.html --title "ETF-Era Backtest"
+
+# Tranched (x4) versions of every monthly strategy -> reports/comparison-tranched.html
+compare-tranched workers="4":
+    for cfg in configs/tranched/*.yaml; do name=$(basename "$cfg" .yaml); trader backtest "$cfg" --suite --offline --workers {{workers}} --out "results-tranched/$name" > /dev/null || exit 1; done
+    trader compare results-tranched results/buy_and_hold results/sixty_forty --out reports/comparison-tranched.html --title "Tranched Strategy Backtest"

@@ -1,0 +1,10 @@
+# Antonacci Global Equities Momentum (dual momentum), split into 4 staggered monthly tranches (rebalance timing luck).
+strategy: antonacci_gem
+params: {}
+execution:
+  mode: next_open
+  tranches: 4
+data:
+  use_proxies: true
+backtest:
+  start: 2000-01-03

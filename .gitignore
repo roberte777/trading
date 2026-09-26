@@ -26,3 +26,4 @@ deploy/env/*.env
 !deploy/env/example.env
 
 .DS_Store
+logs/

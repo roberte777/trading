@@ -1,0 +1,10 @@
+# Faber GTAA-5 (10-month SMA timing), split into 4 staggered monthly tranches (rebalance timing luck).
+strategy: faber_gtaa
+params: {}
+execution:
+  mode: next_open
+  tranches: 4
+data:
+  use_proxies: true
+backtest:
+  start: 2000-01-03

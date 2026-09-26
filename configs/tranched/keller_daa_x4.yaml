@@ -1,0 +1,10 @@
+# Defensive Asset Allocation (DAA-G12), split into 4 staggered monthly tranches (rebalance timing luck).
+strategy: keller_daa
+params: {}
+execution:
+  mode: next_open
+  tranches: 4
+data:
+  use_proxies: true
+backtest:
+  start: 2000-01-03

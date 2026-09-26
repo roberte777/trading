@@ -1,0 +1,10 @@
+# Risk parity + 10-month trend filter (Clare et al. 2016), split into 4 staggered monthly tranches (rebalance timing luck).
+strategy: risk_parity_trend
+params: {}
+execution:
+  mode: next_open
+  tranches: 4
+data:
+  use_proxies: true
+backtest:
+  start: 2000-01-03
