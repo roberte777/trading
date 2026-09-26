@@ -56,6 +56,9 @@ class ExecutionConfig:
     cash_buffer: float = 0.0
     max_gross: float = 1.0
     allow_short: bool = False
+    #: Split a periodic strategy into this many sub-portfolios on staggered days
+    #: (see trader.strategy.tranche). 1 = trade on the schedule's day only.
+    tranches: int = 1
 
     def rules(self) -> RebalanceRules:
         return RebalanceRules(
@@ -165,7 +168,12 @@ class RunConfig:
     def build_strategy(self):
         from trader.strategy.registry import get_strategy
 
-        return get_strategy(self.strategy)(**self.params)
+        strategy = get_strategy(self.strategy)(**self.params)
+        if self.execution.tranches > 1:
+            from trader.strategy.tranche import Tranched
+
+            strategy = Tranched(strategy, self.execution.tranches)
+        return strategy
 
     def proxies_for(self, strategy) -> dict[str, str]:
         return {**strategy.proxies, **self.data.proxies} if self.data.use_proxies else {}

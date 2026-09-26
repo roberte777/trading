@@ -35,6 +35,8 @@ from trader.strategy.base import Context, Strategy
 log = logging.getLogger(__name__)
 
 EXECUTIONS = ("next_open", "next_close")
+#: Sessions an order without a fill price is re-tried before it is abandoned.
+MAX_CARRY = 5
 
 
 @dataclass(frozen=True)
@@ -156,6 +158,7 @@ class Backtester:
         pos = np.zeros(n)
         cash = float(cfg.initial_capital)
         pending: dict[int, list[Order]] = defaultdict(list)
+        carried: dict[int, int] = {}
         T = end_i - start_i + 1
         rec_equity = np.zeros(T)
         rec_cash = np.zeros(T)
@@ -185,10 +188,25 @@ class Backtester:
 
             # 2. fills
             if i in pending:
+                unfilled: list[Order] = []
                 cash, traded, fees, slip = self._execute(
-                    pending.pop(i), now, fills[i], marks[i - 1], pos, col, cash, trades
+                    pending.pop(i), now, fills[i], marks[i - 1], pos, col, cash, trades, unfilled
                 )
                 rec_traded[r], rec_fees[r], rec_slip[r] = traded, fees, slip
+                # No price for a symbol today (a data gap or halt): try again next session,
+                # as a live order would be re-sent, for up to MAX_CARRY sessions.
+                for o in unfilled:
+                    tries = carried.get(id(o), 0) + 1
+                    if tries <= MAX_CARRY and i + 1 <= end_i:
+                        carried[id(o)] = tries
+                        pending[i + 1].append(o)
+                    else:
+                        log.warning(
+                            "%s: giving up on %s order after %d sessions",
+                            strat.name,
+                            o.symbol,
+                            tries,
+                        )
 
             # 3. mark to market
             held = pos != 0
@@ -301,6 +319,7 @@ class Backtester:
         col: dict[str, int],
         cash: float,
         trades: list[dict],
+        unfilled: list[Order] | None = None,
     ) -> tuple[float, float, float, float]:
         cfg = self.config
         costs = cfg.costs
@@ -338,13 +357,15 @@ class Backtester:
         def ref_for(o: Order) -> float | None:
             ref = ref_prices[col[o.symbol]]
             if not math.isfinite(ref) or ref <= 0:
-                log.warning(
-                    "%s: no %s price for %s on %s; order dropped",
+                log.info(
+                    "%s: no %s price for %s on %s; order carried to the next session",
                     self.strategy.name,
                     cfg.execution,
                     o.symbol,
                     now.date(),
                 )
+                if unfilled is not None:
+                    unfilled.append(o)
                 return None
             return float(ref)
 
