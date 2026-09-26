@@ -28,3 +28,7 @@ backtest name *args:
 # Backtest every strategy that has a config in configs/strategies/
 backtest-all *args:
     for cfg in configs/strategies/*.yaml; do trader backtest "$cfg" --suite {{args}} || exit 1; done
+
+# Compare every result folder under results/ -> reports/comparison.{html,md,json}
+compare *args:
+    trader compare results {{args}}

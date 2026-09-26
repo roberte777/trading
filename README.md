@@ -14,6 +14,22 @@ just test              # unit + contract tests
 
 The first backtest downloads daily bars from Yahoo Finance into `~/.cache/trader` (override with `TRADER_CACHE_DIR`). Every worktree on the machine shares this cache. No API keys are needed for backtesting.
 
+## Comparing strategies
+
+```sh
+trader compare results/                     # every result folder under results/
+trader compare results/a results/b --out reports/ab.html
+```
+
+This writes `comparison.html` (a self-contained interactive report with no external assets), `comparison.md` (leaderboard and scorecards) and `comparison.json` (the full payload). All strategies are aligned on their **common date window**, so every number compares like with like. Each strategy gets a scorecard of robustness checks:
+
+* holds up after publication
+* significant under the Deflated Sharpe Ratio across all trials
+* survives 2× costs
+* stable across parameter neighbours
+* insensitive to execution timing
+* better risk-adjusted return and shallower drawdown than SPY
+
 ## Design
 
 ```
