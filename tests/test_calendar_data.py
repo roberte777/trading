@@ -77,3 +77,20 @@ def test_partial_session_bar_is_not_cached():
     evening = datetime(2024, 5, 2, 17, 0, tzinfo=NY)
     assert list(drop_incomplete_session(bars, midday).index) == [pd.Timestamp("2024-05-01")]
     assert len(drop_incomplete_session(bars, evening)) == 2
+
+
+def test_default_proxies_are_complete_for_common_etfs():
+    from trader.data.proxies import DEFAULT_PROXIES, proxies_for
+
+    assert proxies_for(["SPY", "ZZZZ"]) == {"SPY": "VFINX"}
+    assert DEFAULT_PROXIES["BIL"] == "@tbill"
+    assert "^SPGSCI" not in DEFAULT_PROXIES.values()  # spot index, no roll yield
+
+
+def test_symbol_slippage_override():
+    from trader.execution.costs import CostModel
+
+    c = CostModel(slippage_bps=5, symbol_slippage_bps={"SPY": 1})
+    assert c.fill_price(100, 1, "SPY") == pytest.approx(100.01)
+    assert c.fill_price(100, 1, "DBC") == pytest.approx(100.05)
+    assert c.scaled(2).symbol_slippage_bps == {"SPY": 2}

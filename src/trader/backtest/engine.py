@@ -300,7 +300,7 @@ class Backtester:
         def fill(o: Order, qty: float, ref: float) -> None:
             nonlocal cash, traded, fees_total, slip_total
             j = col[o.symbol]
-            px = costs.fill_price(ref, qty)
+            px = costs.fill_price(ref, qty, o.symbol)
             fee = costs.fees(qty, px)
             cash -= qty * px + fee
             pos[j] += qty
@@ -353,7 +353,7 @@ class Backtester:
         buys = [(o, ref_for(o)) for o in orders if o.qty > 0]
         buys = [(o, ref) for o, ref in buys if ref is not None]
         if buys:
-            need = sum(o.qty * costs.fill_price(ref, o.qty) for o, ref in buys)
+            need = sum(o.qty * costs.fill_price(ref, o.qty, o.symbol) for o, ref in buys)
             px_now = np.where(np.isfinite(ref_prices), ref_prices, last_marks)
             equity_now = cash + float(np.nansum(np.where(pos != 0, pos * px_now, 0.0)))
             budget = cash + max(cfg.rules.max_gross - 1.0, 0.0) * equity_now

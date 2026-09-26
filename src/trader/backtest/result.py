@@ -9,6 +9,7 @@ A result folder looks like::
         targets.parquet  # strategy targets on each decision date
         trades.parquet   # every simulated fill
         variants.json    # robustness-suite metrics (when run with --suite)
+        variant_returns.parquet  # daily returns of each robustness variant
 
 ``trader compare results/*`` reads any number of these folders.
 """
@@ -54,6 +55,8 @@ class BacktestResult:
     meta: dict[str, Any] = field(default_factory=dict)
     metrics: dict[str, Any] = field(default_factory=dict)
     variants: dict[str, Any] = field(default_factory=dict)
+    #: Daily returns of every robustness variant (columns), for trial-count corrections.
+    variant_returns: pd.DataFrame = field(default_factory=pd.DataFrame)
 
     @property
     def equity(self) -> pd.Series:
@@ -100,6 +103,9 @@ class BacktestResult:
             (folder / "variants.json").write_text(
                 json.dumps(_jsonable(self.variants), indent=2, default=str) + "\n"
             )
+        if not self.variant_returns.empty:
+            vr = self.variant_returns.rename_axis("date").astype("float32")
+            vr.to_parquet(folder / "variant_returns.parquet")
         return folder
 
     @classmethod
@@ -127,4 +133,9 @@ class BacktestResult:
             meta=summary.get("meta", {}),
             metrics=summary.get("metrics", {}),
             variants=json.loads(variants_path.read_text()) if variants_path.exists() else {},
+            variant_returns=(
+                pd.read_parquet(folder / "variant_returns.parquet").astype(float)
+                if (folder / "variant_returns.parquet").exists()
+                else pd.DataFrame()
+            ),
         )

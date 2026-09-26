@@ -150,9 +150,9 @@ def _run_variant(args: tuple) -> tuple[str, dict[str, Any] | str]:
     name, cls, params, data, calendar, cfg = args
     try:
         result = Backtester(cls(**params), data, calendar, cfg).run()
-        return name, _variant_summary(result)
+        return name, _variant_summary(result), result.returns
     except Exception as err:  # a failing variant should not sink the suite
-        return name, f"error: {err}"
+        return name, f"error: {err}", None
 
 
 def run_suite(
@@ -161,7 +161,9 @@ def run_suite(
     calendar: TradingCalendar,
     base: BacktestConfig,
     workers: int | None = None,
+    returns_out: dict[str, pd.Series] | None = None,
 ) -> dict[str, Any]:
+    """Run every robustness variant. Daily returns are collected into ``returns_out``."""
     variants = suite_variants(strategy, base, data)
     cls = type(strategy)
     jobs = [
@@ -172,12 +174,13 @@ def run_suite(
     out: dict[str, Any] = {}
     if workers > 1 and len(jobs) > 1:
         with ProcessPoolExecutor(max_workers=workers) as pool:
-            for name, summary in pool.map(_run_variant, jobs):
-                out[name] = summary
+            finished = list(pool.map(_run_variant, jobs))
     else:
-        for job in jobs:
-            name, summary = _run_variant(job)
-            out[name] = summary
+        finished = [_run_variant(job) for job in jobs]
+    for name, summary, rets in finished:
+        out[name] = summary
+        if returns_out is not None and rets is not None:
+            returns_out[name] = rets
     return {name: {"description": variants[name][2], "metrics": out[name]} for name in variants}
 
 
@@ -192,7 +195,11 @@ def backtest(
     result.metrics = evaluate(result)
     result.meta.update(_provenance(run))
     if suite:
-        result.variants = run_suite(strategy, data, calendar, cfg, workers)
+        variant_returns: dict[str, pd.Series] = {}
+        result.variants = run_suite(
+            strategy, data, calendar, cfg, workers, returns_out=variant_returns
+        )
+        result.variant_returns = pd.DataFrame(variant_returns)
         base_sr = result.metrics["sharpe_daily"]
         trials = [base_sr] + [
             v["metrics"]["sharpe_daily"]

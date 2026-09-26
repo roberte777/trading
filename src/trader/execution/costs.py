@@ -20,12 +20,14 @@ robustness suite also re-runs every strategy at 0x, 2x and 4x these costs.
 from __future__ import annotations
 
 import dataclasses
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
 class CostModel:
     slippage_bps: float = 5.0
+    #: Per-symbol slippage overrides in bps (e.g. {"SPY": 2, "DBC": 8}).
+    symbol_slippage_bps: dict[str, float] = field(default_factory=dict)
     commission_per_share: float = 0.0
     commission_min: float = 0.0
     commission_bps: float = 0.0
@@ -39,8 +41,14 @@ class CostModel:
     #: Annual borrow fee on short market value.
     borrow_rate: float = 0.0
 
-    def fill_price(self, ref_price: float, qty: float) -> float:
-        slip = self.slippage_bps / 1e4
+    def slippage_for(self, symbol: str | None) -> float:
+        """Slippage in bps for ``symbol`` (the override if one is set)."""
+        if symbol is not None and symbol in self.symbol_slippage_bps:
+            return float(self.symbol_slippage_bps[symbol])
+        return self.slippage_bps
+
+    def fill_price(self, ref_price: float, qty: float, symbol: str | None = None) -> float:
+        slip = self.slippage_for(symbol) / 1e4
         return ref_price * (1.0 + slip) if qty > 0 else ref_price * (1.0 - slip)
 
     def fees(self, qty: float, price: float) -> float:
@@ -61,6 +69,7 @@ class CostModel:
         return dataclasses.replace(
             self,
             slippage_bps=self.slippage_bps * multiplier,
+            symbol_slippage_bps={k: v * multiplier for k, v in self.symbol_slippage_bps.items()},
             commission_per_share=self.commission_per_share * multiplier,
             commission_min=self.commission_min * multiplier,
             commission_bps=self.commission_bps * multiplier,
