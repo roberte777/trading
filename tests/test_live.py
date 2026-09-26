@@ -28,7 +28,14 @@ from trader.strategy import MonthEnd, Strategy
 
 from .conftest import make_market_data
 
-ZERO = CostModel(slippage_bps=0, sec_fee_rate=0, taf_per_share=0, taf_max=0, cat_per_share=0)
+ZERO = CostModel(
+    slippage_bps=0,
+    symbol_slippage_bps={},
+    sec_fee_rate=0,
+    taf_per_share=0,
+    taf_max=0,
+    cat_per_share=0,
+)
 
 
 class TopTwo(Strategy):
@@ -155,6 +162,7 @@ def _run_config(**live) -> RunConfig:
             RunConfig(strategy="x").backtest,
             costs={
                 "slippage_bps": 0,
+                "symbol_slippage_bps": {},
                 "sec_fee_rate": 0,
                 "taf_per_share": 0,
                 "taf_max": 0,
