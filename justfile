@@ -40,3 +40,14 @@ docker-build:
 # What would a strategy trade right now? (no orders sent)
 live-dry name:
     trader live run {{name}} --once --dry-run --broker local
+
+# Re-run every configured strategy (with proxies) and write the main comparison report
+compare-all workers="4":
+    for cfg in configs/strategies/*.yaml; do name=$(basename "$cfg" .yaml); trader backtest "$cfg" --suite --offline --workers {{workers}} --out "results/$name" > /dev/null || exit 1; done
+    trader compare results --out reports/comparison.html --title "Twelve-Strategy Backtest" --fragment
+
+# Same, on real ETF data only (no pre-inception proxies), from 2008-07 when every ETF
+# (incl. BIL, VEU, HYG, BND) has a year of history: a check on the proxy splicing
+compare-etf-era workers="4":
+    for cfg in configs/strategies/*.yaml; do name=$(basename "$cfg" .yaml); trader backtest "$cfg" --suite --offline --no-proxies --start 2008-07-01 --workers {{workers}} --out "results-etf/$name" > /dev/null || exit 1; done
+    trader compare results-etf --out reports/comparison-etf-era.html --title "ETF-Era Backtest"
