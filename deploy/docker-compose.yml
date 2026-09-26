@@ -1,0 +1,39 @@
+# One container per strategy, all from the same image.
+#
+# Add a strategy: copy a service block, change the service name, TRADER_STRATEGY,
+# the env file and the volume. Remove one: delete its block
+# (`docker compose up -d --remove-orphans`).
+#
+#   cp deploy/env/example.env deploy/env/sixty-forty.env   # fill in paper keys
+#   docker compose -f deploy/docker-compose.yml up -d --build
+#   docker compose -f deploy/docker-compose.yml logs -f sixty-forty
+#
+# Accounts: Alpaca gives each user up to 3 paper accounts and 1 live account.
+# Give each strategy its own paper account (account_mode: dedicated, the default),
+# or share one account with TRADER_ACCOUNT_MODE=shared plus a TRADER_ALLOCATION
+# per container (each container then trades only its own ledger).
+
+x-trader: &trader
+  image: trader:latest
+  build:
+    context: ..
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "5" }
+
+services:
+  sixty-forty:
+    <<: *trader
+    environment:
+      TRADER_STRATEGY: sixty_forty
+      ALPACA_PAPER: "true"
+      # TRADER_DRY_RUN: "true"          # plan and log orders without sending them
+      # TRADER_BROKER: local            # simulated account; no keys needed
+      # TRADER_ACCOUNT_MODE: shared
+      # TRADER_ALLOCATION: "25000"
+    env_file: [env/sixty-forty.env]
+    volumes: [sixty-forty-state:/state]
+
+volumes:
+  sixty-forty-state:

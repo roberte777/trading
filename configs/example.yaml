@@ -38,12 +38,18 @@ backtest:
   benchmark: SPY
 
 live:
-  broker: alpaca               # alpaca | local (file-backed simulator for smoke tests)
-  paper: true                  # paper trading endpoint
+  broker: alpaca               # alpaca | local (file-backed simulated account, no keys needed)
+  paper: true                  # paper endpoint; real money also needs ALPACA_PAPER=false + TRADER_ALLOW_LIVE=yes
   dry_run: false               # log orders, submit nothing
-  data_provider: alpaca        # alpaca | yahoo
-  capital_fraction: 1.0        # fraction of account equity this strategy may use
-  run_at: null                 # default 08:45 ET for next_open, 15:35 ET for next_close
-  state_dir: state
+  instance_id: null            # default = strategy name; prefixes client order ids and state folder
+  account_mode: dedicated      # dedicated (own account) | shared (several containers, one account)
+  allocation: null             # shared mode: dollars assigned to this strategy's ledger
+  capital_fraction: 1.0        # dedicated mode: fraction of account equity to use
+  order_style: market          # market (day orders queued pre-open) | auction (opg/cls; Elite accounts)
+  data_provider: yahoo         # yahoo (same data as the backtest) | alpaca
+  run_at: null                 # NY time; default 08:45 (next_open) or close-25m (next_close)
+  retry_after_open_minutes: 5  # retry pre-open rejections (e.g. wash-trade guard) after the open
+  initial_rebalance: true      # trade to targets on first deployment
+  state_dir: state             # overridden by TRADER_STATE_DIR (/state in Docker)
   max_turnover: 2.2            # abort a rebalance trading more than 2.2x equity
-  foreign_positions: ignore    # ignore | fail when the account holds non-universe symbols
+  foreign_positions: ignore    # ignore | fail when a dedicated account holds other symbols

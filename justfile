@@ -32,3 +32,11 @@ backtest-all *args:
 # Compare every result folder under results/ -> reports/comparison.{html,md,json}
 compare *args:
     trader compare results {{args}}
+
+# Build the strategy container image
+docker-build:
+    docker build -t trader:latest .
+
+# What would a strategy trade right now? (no orders sent)
+live-dry name:
+    trader live run {{name}} --once --dry-run --broker local

@@ -93,24 +93,42 @@ class BacktestSection:
 
 @dataclass(frozen=True)
 class LiveConfig:
-    #: ``alpaca`` or ``local`` (a file-backed simulated account for smoke tests).
+    #: ``alpaca`` or ``local`` (a file-backed simulated account for forward tests).
     broker: str = "alpaca"
     paper: bool = True
     #: Log the orders that would be sent, but send nothing.
     dry_run: bool = False
-    #: Market data source for live signals: ``alpaca`` or ``yahoo``.
-    data_provider: str = "alpaca"
-    #: Fraction of account equity this strategy may use (1.0 = whole account).
+    #: Unique name for this deployment (prefixes client order ids and the state
+    #: folder). Defaults to the strategy name; set it when running the same
+    #: strategy twice against one account.
+    instance_id: str | None = None
+    #: ``dedicated``: the strategy owns the account (times ``capital_fraction``).
+    #: ``shared``: several strategies share one account; this one trades only its
+    #: own ledger, seeded with ``allocation`` dollars.
+    account_mode: str = "dedicated"
+    allocation: float | None = None
     capital_fraction: float = 1.0
-    #: Local time (America/New_York) to run. Must precede the 9:28 OPG cutoff for
-    #: next_open and the 15:50 MOC cutoff for next_close.
+    #: ``market``: day market orders queued before the open (works on every Alpaca
+    #: account). ``auction``: opg/cls auction orders (falls back to market if the
+    #: account is not permitted to use them).
+    order_style: str = "market"
+    #: Market data for live signals. ``yahoo`` matches the backtest data exactly.
+    data_provider: str = "yahoo"
+    #: New York time to start the run (default 08:45 for next_open; 25 minutes
+    #: before the close for next_close).
     run_at: str | None = None
+    #: Orders rejected before the open (e.g. wash-trade protection when another
+    #: strategy trades the same symbol) are retried this many minutes after the open.
+    retry_after_open_minutes: int = 5
+    #: Trade to the strategy's targets on first deployment instead of waiting for
+    #: the next scheduled rebalance (mirrors the backtest default).
+    initial_rebalance: bool = True
     state_dir: str = "state"
     #: Abort a rebalance whose traded notional exceeds this multiple of equity.
     max_turnover: float = 2.2
-    #: Symbols held in the account that are not in the universe: ``ignore`` or ``fail``.
+    #: Dedicated accounts holding non-universe symbols: ``ignore`` or ``fail``.
     foreign_positions: str = "ignore"
-    #: Initial capital for the ``local`` broker.
+    #: Starting cash for the ``local`` broker.
     local_initial_cash: float = 100_000.0
 
     def resolved_run_at(self, mode: str) -> str:

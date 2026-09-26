@@ -30,6 +30,18 @@ This writes `comparison.html` (a self-contained interactive report with no exter
 * insensitive to execution timing
 * better risk-adjusted return and shallower drawdown than SPY
 
+## Running live
+
+Each strategy is its own container, built from one image and selected with `TRADER_STRATEGY`:
+
+```sh
+docker build -t trader .
+docker run --rm -e TRADER_STRATEGY=sixty_forty -e TRADER_BROKER=local trader live run --once --dry-run
+docker compose -f deploy/docker-compose.yml up -d        # one service block per strategy
+```
+
+Paper trading is the default. See [docs/deploy.md](docs/deploy.md) for accounts (dedicated vs a shared account with per-strategy ledgers), order styles, the kill switch and other safety rails, and where live fills will differ from the backtest.
+
 ## Design
 
 ```

@@ -1,0 +1,12 @@
+.git
+.venv
+.direnv
+.pytest_cache
+.ruff_cache
+**/__pycache__
+data
+state
+results
+reports
+deploy/env/*.env
+tests

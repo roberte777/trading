@@ -43,11 +43,14 @@ class TradingCalendar:
     extend past the last date you query (``TradingCalendar.nyse`` pads a year ahead).
     """
 
-    def __init__(self, sessions) -> None:
+    def __init__(self, sessions, closes: pd.Series | None = None) -> None:
         idx = pd.DatetimeIndex(sessions)
         if idx.tz is not None:
             idx = idx.tz_localize(None)
         self.sessions = idx.normalize().unique().sort_values()
+        #: Session close times (tz-aware), when known. Used to move market-on-close
+        #: runs earlier on half-days.
+        self.closes = closes
         months = np.asarray(self.sessions.year * 12 + self.sessions.month)
         iso = self.sessions.isocalendar()
         weeks = np.asarray(iso["year"].astype(np.int64) * 100 + iso["week"].astype(np.int64))
@@ -135,6 +138,12 @@ class TradingCalendar:
     def sessions_left_in_week(self, value) -> int:
         return int(self._week_left[self.index(value)])
 
+    def close_time(self, value) -> pd.Timestamp | None:
+        if self.closes is None:
+            return None
+        ts = to_session(value)
+        return self.closes.get(ts)
+
     def is_month_end(self, value) -> bool:
         return self.sessions_left_in_month(value) == 0
 
@@ -147,4 +156,10 @@ def _nyse_cached(start: pd.Timestamp, end: pd.Timestamp) -> TradingCalendar:
     import exchange_calendars as xcals
 
     cal = xcals.get_calendar("XNYS", start=start, end=end)
-    return TradingCalendar(cal.sessions)
+    closes = cal.schedule["close"]
+    closes.index = (
+        pd.DatetimeIndex(closes.index).tz_localize(None).normalize()
+        if closes.index.tz is not None
+        else pd.DatetimeIndex(closes.index).normalize()
+    )
+    return TradingCalendar(cal.sessions, closes=closes)
