@@ -1,0 +1,9 @@
+# Adaptive Asset Allocation (top 5, min-variance). See docs/strategies/adaptive_asset_allocation.md.
+strategy: adaptive_asset_allocation
+params: {}
+execution:
+  mode: next_open
+data:
+  use_proxies: true
+backtest:
+  start: 2000-01-03
