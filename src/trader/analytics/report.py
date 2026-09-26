@@ -330,10 +330,36 @@ def _latest_targets(res: BacktestResult) -> dict[str, Any]:
 
 
 # -- renderers ---------------------------------------------------------------------------
-def render_html(payload: dict[str, Any]) -> str:
+_DOCUMENT_TAGS = (
+    "<!doctype html>",
+    '<html lang="en">',
+    "<head>",
+    '<meta charset="utf-8">',
+    "</head>",
+    "<body>",
+    "</body>",
+    "</html>",
+)
+
+
+def render_html(payload: dict[str, Any], fragment: bool = False) -> str:
+    """The self-contained report page.
+
+    ``fragment=True`` drops the document wrapper (doctype, html/head/body tags) for
+    hosts that supply their own skeleton, such as a published claude.ai artifact.
+    """
     template = resources.files("trader.analytics").joinpath("templates/report.html").read_text()
     data = json.dumps(payload, separators=(",", ":")).replace("</", "<\\/")
-    return template.replace("__TITLE__", html.escape(payload["title"])).replace("__PAYLOAD__", data)
+    page = template.replace("__TITLE__", html.escape(payload["title"])).replace("__PAYLOAD__", data)
+    if fragment:
+        lines = page.splitlines()
+        page = "\n".join(
+            ln
+            for ln in lines
+            if ln.strip() not in _DOCUMENT_TAGS
+            and not ln.strip().startswith('<meta name="viewport"')
+        )
+    return page
 
 
 def _pct(x: Any, d: int = 1) -> str:
@@ -384,6 +410,7 @@ def write_reports(
     out: str | Path,
     title: str = "Strategy comparison",
     benchmarks: tuple[str, ...] = BENCHMARKS,
+    fragment: bool = False,
 ) -> dict[str, Path]:
     out = Path(out)
     stem = out.with_suffix("") if out.suffix == ".html" else out / "comparison"
@@ -395,6 +422,9 @@ def write_reports(
         "json": stem.with_suffix(".json"),
     }
     paths["html"].write_text(render_html(payload))
+    if fragment:
+        paths["fragment"] = stem.with_suffix(".fragment.html")
+        paths["fragment"].write_text(render_html(payload, fragment=True))
     paths["md"].write_text(render_markdown(payload))
     paths["json"].write_text(json.dumps(payload, indent=1))
     return paths
@@ -404,7 +434,9 @@ def write_reports(
 def _cmd_compare(args) -> int:
     results = load_results(args.results)
     benchmarks = tuple(b.strip() for b in args.benchmarks.split(",") if b.strip())
-    paths = write_reports(results, args.out, title=args.title, benchmarks=benchmarks)
+    paths = write_reports(
+        results, args.out, title=args.title, benchmarks=benchmarks, fragment=args.fragment
+    )
     print(Path(paths["md"]).read_text())
     for kind, p in paths.items():
         print(f"{kind:5s} → {p}")
@@ -420,5 +452,10 @@ def register_cli(sub) -> None:
         "--benchmarks",
         default=",".join(BENCHMARKS),
         help="comma-separated strategy ids treated as benchmarks",
+    )
+    sp.add_argument(
+        "--fragment",
+        action="store_true",
+        help="also write comparison.fragment.html without the document wrapper (for artifact hosts)",
     )
     sp.set_defaults(func=_cmd_compare)

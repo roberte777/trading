@@ -59,5 +59,7 @@ def test_round_trip_and_compare(tmp_path):
     html = render_html(payload)
     assert "__PAYLOAD__" not in html and "</script>" in html
     assert html.count("<script") == 2
+    frag = render_html(payload, fragment=True)
+    assert "<!doctype" not in frag.lower() and "<body>" not in frag and "<title>" in frag
     md = render_markdown(payload)
     assert "| Strategy |" in md
