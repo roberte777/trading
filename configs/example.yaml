@@ -13,6 +13,7 @@ execution:                     # shared by backtest AND live
   cash_buffer: 0.0             # keep this fraction of equity in cash when sizing
   max_gross: 1.0               # gross exposure cap (1.0 = no leverage)
   allow_short: false
+  tranches: 1                  # >1 splits a monthly strategy into staggered sub-portfolios (timing luck)
 
 data:
   provider: yahoo              # yahoo (free, long history) | alpaca (needs keys, 2016+)
