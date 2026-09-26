@@ -1,0 +1,10 @@
+# Turn of the month (McConnell & Xu 2008). See docs/strategies/turn_of_month.md.
+strategy: turn_of_month
+params: {}
+execution:
+  mode: next_open
+  rebalance_band: 0.02
+data:
+  use_proxies: true
+backtest:
+  start: 2000-01-03
