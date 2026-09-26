@@ -75,7 +75,7 @@ def evaluate(result: BacktestResult, bootstrap: bool = True) -> dict[str, Any]:
     """Full metric set for a single result (stored in summary.json)."""
     r, rf, b = result.returns, result.rf, result.benchmark_returns
     m: dict[str, Any] = performance_metrics(r, rf, b)
-    m.update(trading_metrics(result.daily, result.trades))
+    m.update(trading_metrics(result.daily, result.trades, result.weights))
     ex = (r - rf.reindex(r.index).fillna(0.0)).dropna()
     m["sharpe_daily"] = float(ex.mean() / ex.std(ddof=1)) if ex.std(ddof=1) > 0 else float("nan")
     m["psr_vs_zero"] = probabilistic_sharpe(ex)
@@ -93,7 +93,7 @@ def evaluate(result: BacktestResult, bootstrap: bool = True) -> dict[str, Any]:
 
 def _variant_summary(result: BacktestResult) -> dict[str, Any]:
     m = performance_metrics(result.returns, result.rf, result.benchmark_returns)
-    m.update(trading_metrics(result.daily, result.trades))
+    m.update(trading_metrics(result.daily, result.trades, result.weights))
     ex = (result.returns - result.rf.reindex(result.returns.index).fillna(0.0)).dropna()
     m["sharpe_daily"] = float(ex.mean() / ex.std(ddof=1)) if ex.std(ddof=1) > 0 else float("nan")
     return {k: m.get(k) for k in VARIANT_KEYS}

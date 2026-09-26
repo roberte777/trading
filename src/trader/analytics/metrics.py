@@ -129,17 +129,34 @@ def performance_metrics(
     return out
 
 
+#: T-bill ETFs: holding them counts as being in cash, not "in the market".
+CASH_LIKE = frozenset({"BIL", "SHV", "SGOV"})
+
+
 def trading_metrics(
-    daily: pd.DataFrame, trades: pd.DataFrame, periods: int = PERIODS
+    daily: pd.DataFrame,
+    trades: pd.DataFrame,
+    weights: pd.DataFrame | None = None,
+    periods: int = PERIODS,
 ) -> dict[str, float]:
-    """Turnover, exposure and cost drag from a backtest's daily ledger."""
+    """Turnover, exposure and cost drag from a backtest's daily ledger.
+
+    With ``weights``, exposure excludes T-bill ETFs, so a strategy parked in BIL
+    counts as out of the market.
+    """
     years = len(daily) / periods
     avg_equity = float(daily["equity"].mean())
     costs = float(daily["fees"].sum() + daily["slippage"].sum())
+    if weights is not None and not weights.empty:
+        risky_cols = [c for c in weights.columns if c not in CASH_LIKE]
+        risk = weights[risky_cols].abs().sum(axis=1).reindex(daily.index).fillna(0.0)
+    else:
+        risk = daily["gross"]
     return {
         "turnover_annual": float(daily["turnover"].sum() / 2.0 / years),
         "avg_gross_exposure": float(daily["gross"].mean()),
-        "time_in_market": float((daily["gross"] > 0.05).mean()),
+        "avg_risk_exposure": float(risk.mean()),
+        "time_in_market": float((risk > 0.05).mean()),
         "trades_per_year": float(len(trades) / years) if not trades.empty else 0.0,
         "cost_drag_annual": float(costs / avg_equity / years) if avg_equity > 0 else float("nan"),
         "total_fees": float(daily["fees"].sum()),
