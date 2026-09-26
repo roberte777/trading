@@ -1,0 +1,9 @@
+# Risk parity + 10-month trend filter (Clare et al. 2016). See docs/strategies/risk_parity_trend.md.
+strategy: risk_parity_trend
+params: {}
+execution:
+  mode: next_open
+data:
+  use_proxies: true
+backtest:
+  start: 2000-01-03
