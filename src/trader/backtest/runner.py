@@ -130,12 +130,16 @@ def suite_variants(
                     base,
                     f"{name} = {val} (default {current})",
                 )
+    # Only symbols that actually use proxy history matter here: an ETF that simply
+    # lists late (e.g. XLC in 2018) has no proxy rows and must not delay the variant.
     firsts = []
     for s in strategy.universe():
+        if not data.proxy_mask[s].any():
+            continue
         real = data.close[s][~data.proxy_mask[s]].first_valid_index()
         if real is not None:
             firsts.append(real)
-    if firsts and data.proxy_mask[strategy.universe()].to_numpy().any():
+    if firsts:
         real_start = max(firsts) + pd.Timedelta(days=int(strategy.warmup() * 1.5))
         if base.start is None or real_start > pd.Timestamp(base.start):
             v["etf_era"] = (
