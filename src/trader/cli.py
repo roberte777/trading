@@ -175,7 +175,8 @@ def _load_extensions() -> None:
         try:
             module = importlib.import_module(mod)
         except ModuleNotFoundError as err:
-            if err.name != mod:
+            # Optional extension not present in this build; re-raise real import errors.
+            if not err.name or not mod.startswith(err.name):
                 raise
             continue
         register = getattr(module, "register_cli", None)
