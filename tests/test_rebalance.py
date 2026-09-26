@@ -45,10 +45,13 @@ def test_validate_weights():
 
 
 def test_cost_model_fees_only_on_sells():
-    c = CostModel(slippage_bps=10, sec_fee_rate=20e-6, taf_per_share=0.0002, taf_max=10)
+    c = CostModel(
+        slippage_bps=10, sec_fee_rate=20e-6, taf_per_share=0.0002, taf_max=10, cat_per_share=0.0
+    )
     assert c.fill_price(100, 1) == pytest.approx(100.1)
     assert c.fill_price(100, -1) == pytest.approx(99.9)
     assert c.fees(100, 50) == 0
     assert c.fees(-100, 50) == pytest.approx(100 * 50 * 20e-6 + 100 * 0.0002)
     assert c.fees(-1_000_000, 1) == pytest.approx(1_000_000 * 20e-6 + 10)
     assert c.scaled(2).slippage_bps == 20
+    assert CostModel().fees(100, 50) == pytest.approx(100 * 0.000003)

@@ -77,13 +77,21 @@ class Flipper(Strategy):
 
 
 def free(**kw) -> BacktestConfig:
-    return BacktestConfig(costs=CostModel(slippage_bps=0, taf_per_share=0, taf_max=0), **kw)
+    return BacktestConfig(
+        costs=CostModel(
+            slippage_bps=0, sec_fee_rate=0, taf_per_share=0, taf_max=0, cat_per_share=0
+        ),
+        **kw,
+    )
 
 
 def test_signal_fills_next_open_with_slippage(market):
     data, cal = market
     cfg = BacktestConfig(
-        costs=CostModel(slippage_bps=10, taf_per_share=0, taf_max=0), start="2006-01-03"
+        costs=CostModel(
+            slippage_bps=10, sec_fee_rate=0, taf_per_share=0, taf_max=0, cat_per_share=0
+        ),
+        start="2006-01-03",
     )
     res = Backtester(AllIn(), data, cal, cfg).run()
     first = res.trades.iloc[0]

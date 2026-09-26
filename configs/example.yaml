@@ -28,9 +28,10 @@ backtest:
   costs:
     slippage_bps: 5            # adverse fill vs official open/close (half-spread + impact)
     commission_per_share: 0.0  # Alpaca: commission-free US equities via API
-    sec_fee_rate: 0.0          # SEC Section 31, $ per $ sold
+    sec_fee_rate: 0.0000206    # SEC Section 31: $20.60 per $1M sold (since 2026-04-04)
     taf_per_share: 0.000195    # FINRA TAF, $ per share sold
-    taf_max: 9.79
+    taf_max: 9.79              # TAF cap per trade
+    cat_per_share: 0.000003    # Consolidated Audit Trail, buys and sells
   cash_interest: false         # Alpaca cash earns nothing; hold BIL for T-bill returns
   margin_rate: 0.07
   initial_rebalance: true
