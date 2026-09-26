@@ -1,0 +1,6 @@
+# Benchmark: SPY bought once and held.
+strategy: buy_and_hold
+params:
+  symbol: SPY
+backtest:
+  start: 2000-01-03

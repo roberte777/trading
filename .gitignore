@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Nix / direnv
+result
+result-*
+.direnv/
+
+# Local data cache and scratch output (committed results live in results/)
+data/cache/
+state/
+reports/*.tmp.html
+
+# Secrets
+.env
+.env.*
+!.env.example
+deploy/env/*.env
+!deploy/env/example.env
+
+.DS_Store

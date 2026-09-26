@@ -1,0 +1,30 @@
+# Common tasks. Run `just` to list them.
+
+default:
+    @just --list
+
+# Run the test suite
+test *args:
+    pytest {{args}}
+
+# Lint and format-check
+lint:
+    ruff check src tests
+    ruff format --check src tests
+
+# Auto-format
+fmt:
+    ruff format src tests
+    ruff check --fix src tests
+
+# List registered strategies with their sources
+list:
+    trader list -v
+
+# Backtest one strategy with the full robustness suite -> results/<name>
+backtest name *args:
+    trader backtest {{name}} --suite {{args}}
+
+# Backtest every strategy that has a config in configs/strategies/
+backtest-all *args:
+    for cfg in configs/strategies/*.yaml; do trader backtest "$cfg" --suite {{args}} || exit 1; done

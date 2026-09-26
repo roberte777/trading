@@ -1,0 +1,4 @@
+# Benchmark: 60% SPY / 40% AGG, rebalanced at each month end (AGG extended with VBMFX before 2003).
+strategy: sixty_forty
+backtest:
+  start: 2000-01-03

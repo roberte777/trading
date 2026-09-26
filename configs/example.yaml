@@ -1,0 +1,48 @@
+# Annotated reference for a strategy config. Copy to configs/strategies/<name>.yaml.
+# One file drives both `trader backtest` and `trader live`, so the two can't drift.
+
+strategy: sixty_forty          # registry name (see `trader list`)
+params: {}                     # overrides of the strategy's Params; defaults = published values
+
+execution:                     # shared by backtest AND live
+  mode: next_open              # next_open (market-on-open) | next_close (market-on-close)
+  delay: 1                     # sessions between the signal close and the fill
+  fractional: false            # whole shares (Alpaca OPG/CLS orders cannot be fractional)
+  rebalance_band: 0.0          # skip weight changes smaller than this (entries/exits always trade)
+  min_order_value: 1.0         # skip orders smaller than $1
+  cash_buffer: 0.0             # keep this fraction of equity in cash when sizing
+  max_gross: 1.0               # gross exposure cap (1.0 = no leverage)
+  allow_short: false
+
+data:
+  provider: yahoo              # yahoo (free, long history) | alpaca (needs keys, 2016+)
+  cache_dir: default           # $TRADER_CACHE_DIR or ~/.cache/trader
+  use_proxies: true            # extend ETF history backwards with older mutual funds / indices
+  proxies: {}                  # extra or overriding proxies, e.g. {TLT: VUSTX}
+  offline: false               # only read the cache
+
+backtest:
+  start: 2000-01-03            # null = first fully warmed-up session
+  end: null                    # null = latest data
+  initial_capital: 100000
+  costs:
+    slippage_bps: 5            # adverse fill vs official open/close (half-spread + impact)
+    commission_per_share: 0.0  # Alpaca: commission-free US equities via API
+    sec_fee_rate: 0.0          # SEC Section 31, $ per $ sold
+    taf_per_share: 0.000195    # FINRA TAF, $ per share sold
+    taf_max: 9.79
+  cash_interest: false         # Alpaca cash earns nothing; hold BIL for T-bill returns
+  margin_rate: 0.07
+  initial_rebalance: true
+  benchmark: SPY
+
+live:
+  broker: alpaca               # alpaca | local (file-backed simulator for smoke tests)
+  paper: true                  # paper trading endpoint
+  dry_run: false               # log orders, submit nothing
+  data_provider: alpaca        # alpaca | yahoo
+  capital_fraction: 1.0        # fraction of account equity this strategy may use
+  run_at: null                 # default 08:45 ET for next_open, 15:35 ET for next_close
+  state_dir: state
+  max_turnover: 2.2            # abort a rebalance trading more than 2.2x equity
+  foreign_positions: ignore    # ignore | fail when the account holds non-universe symbols
