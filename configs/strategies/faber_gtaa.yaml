@@ -1,0 +1,9 @@
+# Faber GTAA-5 (10-month SMA timing). See docs/strategies/faber_gtaa.md.
+strategy: faber_gtaa
+params: {}
+execution:
+  mode: next_open
+data:
+  use_proxies: true
+backtest:
+  start: 2000-01-03
