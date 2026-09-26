@@ -1,0 +1,9 @@
+# Sector momentum rotation (Moskowitz-Grinblatt). See docs/strategies/sector_momentum.md.
+strategy: sector_momentum
+params: {}
+execution:
+  mode: next_open
+data:
+  use_proxies: true
+backtest:
+  start: 2000-01-03
