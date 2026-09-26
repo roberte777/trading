@@ -1,0 +1,9 @@
+# Defensive Asset Allocation (DAA-G12). See docs/strategies/keller_daa.md.
+strategy: keller_daa
+params: {}
+execution:
+  mode: next_open
+data:
+  use_proxies: true
+backtest:
+  start: 2000-01-03
