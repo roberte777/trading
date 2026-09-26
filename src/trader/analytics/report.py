@@ -228,7 +228,7 @@ def build_payload(
             td = pd.to_datetime(trades["date"])
             trades = trades[(td >= start) & (td <= end)]
         m = performance_metrics(r, rf, b)
-        m.update(trading_metrics(daily, trades))
+        m.update(trading_metrics(daily, trades, res.weights.loc[start:end]))
         ex = (r - rf).dropna()
         variants = {
             k: v["metrics"] for k, v in res.variants.items() if isinstance(v.get("metrics"), dict)

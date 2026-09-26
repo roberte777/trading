@@ -552,6 +552,7 @@ const COLS = [
   ["cost", "Cost drag", (s) => s.metrics.cost_drag_annual, (x) => pct(x, 2)],
   ["beta", "Beta", (s) => s.metrics.beta, N2],
   ["tim", "In market", (s) => s.metrics.time_in_market, P0],
+  ["exposure", "Avg exposure", (s) => s.metrics.avg_risk_exposure, P0],
   ["proxy", "Proxy data", (s) => s.proxy_share, P0],
   ["score", "Score", (s) => s.score / Math.max(1, s.score_of), (_, s) => (s.is_benchmark ? "–" : `${s.score}/${s.score_of}`)],
 ];
