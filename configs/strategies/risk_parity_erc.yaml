@@ -1,0 +1,9 @@
+# Equal risk contribution (MRT 2010). See docs/strategies/risk_parity_erc.md.
+strategy: risk_parity_erc
+params: {}
+execution:
+  mode: next_open
+data:
+  use_proxies: true
+backtest:
+  start: 2000-01-03
