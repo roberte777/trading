@@ -11,10 +11,13 @@ Costs come in two parts:
   2026-04-04), FINRA TAF at $0.000195/share sold capped at $9.79 per trade, and
   the Consolidated Audit Trail fee of $0.000003/share on buys and sells.
 
-Default slippage is 5 bps per fill. That covers a market order queued before the
-open measured against the official open: about 2 bps for SPY/QQQ/TLT-class ETFs,
-4 bps for EFA/EEM/sector ETFs and 6 bps for thinner funds such as DBC. The
-robustness suite also re-runs every strategy at 0x, 2x and 4x these costs.
+Default slippage is tiered by liquidity (``DEFAULT_SLIPPAGE_BPS``): the estimated
+cost of a market order queued before the open, measured against the official open,
+from quoted spreads and opening-auction research (see
+docs/research/backtest-methodology-and-alpaca.md). 2 bps for the most liquid ETFs
+(SPY, QQQ, TLT, IEF, BIL, GLD, ...), 4 bps for EFA/EEM/sector ETFs, 6 bps for thinner
+funds (DBC, GSG, single-country ETFs), 5 bps for anything unlisted. The robustness
+suite also re-runs every strategy at 0x, 2x and 4x these costs.
 """
 
 from __future__ import annotations
@@ -22,12 +25,30 @@ from __future__ import annotations
 import dataclasses
 from dataclasses import dataclass, field
 
+_TIER_1 = "SPY QQQ IWM DIA IVV VOO VTI TLT IEF SHY BIL SHV SGOV AGG BND LQD GLD IAU"
+_TIER_2 = (
+    "EFA VEA VEU ACWX VXUS EEM VWO EWJ VGK EZU VNQ IYR HYG TIP "
+    "XLB XLE XLF XLI XLK XLP XLU XLV XLY XLRE XLC"
+)
+_TIER_3 = "DBC GSG RWX BWX EWA EWO EWK EWC EWQ EWG EWH EWI EWN EWP EWD EWL EWU EDEN ENOR"
+
+#: Per-fill slippage (bps) by liquidity tier, for market orders at the open.
+DEFAULT_SLIPPAGE_BPS: dict[str, float] = {
+    **{s: 2.0 for s in _TIER_1.split()},
+    **{s: 4.0 for s in _TIER_2.split()},
+    **{s: 6.0 for s in _TIER_3.split()},
+}
+
 
 @dataclass(frozen=True)
 class CostModel:
+    #: Slippage for symbols without a per-symbol value.
     slippage_bps: float = 5.0
-    #: Per-symbol slippage overrides in bps (e.g. {"SPY": 2, "DBC": 8}).
-    symbol_slippage_bps: dict[str, float] = field(default_factory=dict)
+    #: Per-symbol slippage in bps. Defaults to the liquidity tiers above; set to {}
+    #: for a flat ``slippage_bps`` on everything.
+    symbol_slippage_bps: dict[str, float] = field(
+        default_factory=lambda: dict(DEFAULT_SLIPPAGE_BPS)
+    )
     commission_per_share: float = 0.0
     commission_min: float = 0.0
     commission_bps: float = 0.0
