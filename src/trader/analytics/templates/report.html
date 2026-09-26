@@ -291,6 +291,7 @@ const isNum = (x) => typeof x === "number" && isFinite(x);
 const pct = (x, d = 1) => (isNum(x) ? (100 * x).toFixed(d) + "%" : "–");
 const num = (x, d = 2) => (isNum(x) ? x.toFixed(d) : "–");
 const money = (x) => (isNum(x) ? "$" + (x >= 10 ? x.toFixed(1) : x.toFixed(2)) : "–");
+const tickMoney = (x) => "$" + (x >= 1 ? x.toFixed(0) : x.toFixed(2));
 const fmtDate = (s) => new Date(s + "T00:00:00Z").toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" });
 const title = (id) => (byId[id] ? byId[id].title : id);
 
@@ -597,6 +598,11 @@ function board() {
 }
 
 // ---------- sharpe CI bars ----------
+/** Truncate a label to fit ``px`` pixels (approximate glyph width at 12.5px). */
+function fit(text, px) {
+  const max = Math.max(8, Math.floor(px / 6.6));
+  return text.length > max ? text.slice(0, max - 1) + "…" : text;
+}
 function barPath(x0, x1, y, h, r = 4) {
   const w = x1 - x0;
   if (Math.abs(w) < r) return `M${x0},${y}h${w}v${h}h${-w}z`;
@@ -608,7 +614,7 @@ function sharpeChart() {
   host.replaceChildren();
   const rows = S.slice().sort((a, b) => (b.metrics.sharpe ?? -9) - (a.metrics.sharpe ?? -9));
   const W = Math.max(300, host.clientWidth);
-  const labelW = Math.min(230, W * 0.4);
+  const labelW = Math.min(310, W * 0.36);
   const rowH = 30, m = { t: 6, b: 26, r: 44 };
   const H = m.t + rows.length * rowH + m.b;
   let lo = 0, hi = 0;
@@ -623,7 +629,7 @@ function sharpeChart() {
   const spy = byId[SPY];
   rows.forEach((s, k) => {
     const yc = m.t + k * rowH + rowH / 2;
-    const name = s.title.length > 34 ? s.title.slice(0, 33) + "…" : s.title;
+    const name = fit(s.title, labelW);
     svg.appendChild(sv("text", { class: "lbl", x: labelW, y: yc + 4, "text-anchor": "end" }, name));
     const bar = sv("path", { d: barPath(X(0), X(s.metrics.sharpe), yc - 6, 12) });
     bar.style.fill = s.is_benchmark ? "var(--bench)" : "var(--s1)";
@@ -682,7 +688,7 @@ function multiples() {
       const svg = sv("svg", { width: W, height: H, viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `${s.title} versus SPY` });
       for (const t of logTicks(lo, hi)) {
         svg.appendChild(sv("line", { class: "grid", x1: m.l, x2: W - m.r, y1: Y1(t), y2: Y1(t) }));
-        svg.appendChild(sv("text", { x: m.l - 5, y: Y1(t) + 4, "text-anchor": "end" }, money(t)));
+        svg.appendChild(sv("text", { x: m.l - 5, y: Y1(t) + 4, "text-anchor": "end" }, tickMoney(t)));
       }
       svg.appendChild(sv("line", { class: "axis", x1: m.l, x2: W - m.r, y1: Y2(0), y2: Y2(0) }));
       const ddTick = Math.ceil(ddLo * 10) / 10 || -0.1;
@@ -746,7 +752,7 @@ function oosChart() {
   }
   const rows = S.filter((s) => s.oos && (s.oos.in_sample || s.oos.out_of_sample));
   if (!rows.length) { host.appendChild(el("p", { class: "note" }, "No strategy has a publication date inside the window.")); return; }
-  const W = Math.max(300, host.clientWidth), labelW = Math.min(230, W * 0.4), rowH = 30, m = { t: 6, b: 26, r: 20 };
+  const W = Math.max(300, host.clientWidth), labelW = Math.min(310, W * 0.36), rowH = 30, m = { t: 6, b: 26, r: 20 };
   const H = m.t + rows.length * rowH + m.b;
   let lo = 0, hi = 0;
   for (const s of rows) for (const k of ["in_sample", "out_of_sample"]) if (s.oos[k]) { lo = Math.min(lo, s.oos[k].sharpe); hi = Math.max(hi, s.oos[k].sharpe); }
@@ -760,7 +766,7 @@ function oosChart() {
   }
   rows.forEach((s, k) => {
     const yc = m.t + k * rowH + rowH / 2;
-    const name = s.title.length > 34 ? s.title.slice(0, 33) + "…" : s.title;
+    const name = fit(s.title, labelW);
     svg.appendChild(sv("text", { class: "lbl", x: labelW, y: yc + 4, "text-anchor": "end" }, name));
     const a = s.oos.in_sample, b = s.oos.out_of_sample;
     if (a && b) svg.appendChild(sv("line", { x1: X(a.sharpe), x2: X(b.sharpe), y1: yc, y2: yc, style: "stroke: var(--axis); stroke-width: 2" }));
@@ -987,7 +993,7 @@ function observe(node, fn) {
   ro.observe(node);
   observers.set(node, fn);
 }
-const EQ_FMT = (t) => money(t);
+const EQ_FMT = (t) => tickMoney(t);
 function renderPinned() {
   filters();
   for (const id of ["equity-legend", "dd-legend", "roll-legend"]) legend(document.getElementById(id));
