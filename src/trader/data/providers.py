@@ -12,10 +12,11 @@ from __future__ import annotations
 import json
 import logging
 import os
-import time
+import time as time_mod
 from abc import ABC, abstractmethod
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, time, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 
@@ -24,6 +25,9 @@ from trader.data.market_data import FIELDS
 log = logging.getLogger(__name__)
 
 EARLIEST = pd.Timestamp("1970-01-01")
+NY = ZoneInfo("America/New_York")
+#: Daily bars are treated as final after this New York time (covers 16:00 close + late prints).
+SESSION_FINAL = time(16, 30)
 
 
 def normalize_bars(df: pd.DataFrame) -> pd.DataFrame:
@@ -44,6 +48,17 @@ def normalize_bars(df: pd.DataFrame) -> pd.DataFrame:
     out.index.name = "date"
     out = out[~out.index.duplicated(keep="last")].sort_index()
     return out[list(FIELDS)]
+
+
+def drop_incomplete_session(bars: pd.DataFrame, now: datetime | None = None) -> pd.DataFrame:
+    """Drop today's bar until the session has closed (vendors serve a live, partial bar).
+
+    Caching a partial bar would let a later run treat mid-day prices as the close.
+    """
+    now = now or datetime.now(NY)
+    today = pd.Timestamp(now.date())
+    cutoff = today + pd.Timedelta(days=1) if now.time() >= SESSION_FINAL else today
+    return bars[bars.index < cutoff]
 
 
 class DataProvider(ABC):
@@ -90,7 +105,7 @@ class YahooProvider(DataProvider):
                 last_err = err
                 wait = self.pause * (2**attempt)
                 log.warning("yahoo fetch %s failed (%s); retry in %.0fs", symbol, err, wait)
-                time.sleep(wait)
+                time_mod.sleep(wait)
         raise RuntimeError(f"yahoo fetch failed for {symbol}") from last_err
 
 
@@ -179,7 +194,9 @@ class CachedProvider(DataProvider):
                 return cached.loc[start:end]
         elif self.offline:
             raise FileNotFoundError(f"{symbol} not in offline cache {self.root}")
-        bars = self.inner.fetch(symbol, EARLIEST, pd.Timestamp.today().normalize())
+        bars = drop_incomplete_session(
+            self.inner.fetch(symbol, EARLIEST, pd.Timestamp.today().normalize())
+        )
         self.root.mkdir(parents=True, exist_ok=True)
         bars.to_parquet(data_path)
         meta_path.write_text(

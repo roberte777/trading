@@ -6,6 +6,7 @@ import pytest
 
 from trader.calendar import TradingCalendar
 from trader.data.loader import clean_bars, risk_free_series, splice, tbill_index
+from trader.data.providers import NY, drop_incomplete_session
 from trader.strategy import MonthEnd, MonthStart, WeekEnd
 
 
@@ -66,3 +67,13 @@ def test_tbill_index_and_rf_are_causal():
     assert rf.iloc[3] == pytest.approx(0.10 / 252)
     tb = tbill_index(irx, idx, fee=0.0)
     assert tb["close"].pct_change().iloc[3] == pytest.approx(0.10 / 252)
+
+
+def test_partial_session_bar_is_not_cached():
+    from datetime import datetime
+
+    bars = _bars(["2024-05-01", "2024-05-02"], [10, 11])
+    midday = datetime(2024, 5, 2, 13, 0, tzinfo=NY)
+    evening = datetime(2024, 5, 2, 17, 0, tzinfo=NY)
+    assert list(drop_incomplete_session(bars, midday).index) == [pd.Timestamp("2024-05-01")]
+    assert len(drop_incomplete_session(bars, evening)) == 2
