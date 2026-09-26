@@ -1,0 +1,10 @@
+# Connors RSI(2) mean reversion (ETF basket). See docs/strategies/connors_rsi2.md.
+strategy: connors_rsi2
+params: {}
+execution:
+  mode: next_open
+  rebalance_band: 0.02   # stop BIL/holding weights churning daily; entries and exits always trade
+data:
+  use_proxies: true
+backtest:
+  start: 2000-01-03
