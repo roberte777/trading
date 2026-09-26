@@ -205,3 +205,35 @@ def test_symbol_without_data_is_not_traded():
 def test_rejects_same_bar_execution():
     with pytest.raises(ValueError):
         BacktestConfig(delay=0)
+
+
+def test_order_without_a_fill_price_is_carried_to_the_next_session():
+    data, cal = make_market_data(["SPY", "TLT"])
+    gap = pd.Timestamp("2006-01-04")
+    frames = {f: data.field(f).copy() for f in ("open", "high", "low", "close", "volume")}
+    for f in frames:
+        frames[f].loc[gap, "TLT"] = np.nan
+    from trader.data.market_data import MarketData
+
+    gappy = MarketData(frames, rf=data.rf)
+
+    class Both(Strategy):
+        name = "test_both_gap"
+
+        def universe(self):
+            return ["SPY", "TLT"]
+
+        def warmup(self):
+            return 1
+
+        def schedule(self):
+            return MonthEnd()
+
+        def target_weights(self, ctx):
+            return {"SPY": 0.5, "TLT": 0.5}
+
+    res = Backtester(Both(), gappy, cal, free(start="2006-01-03")).run()
+    tlt = res.trades[res.trades["symbol"] == "TLT"]
+    assert pd.Timestamp(tlt["date"].iloc[0]) == pd.Timestamp("2006-01-05")
+    spy = res.trades[res.trades["symbol"] == "SPY"]
+    assert pd.Timestamp(spy["date"].iloc[0]) == gap

@@ -76,6 +76,8 @@ Paper trading is the default. See [docs/deploy.md](docs/deploy.md) for accounts 
 | Idle cash | Earns 0% by default (Alpaca brokerage cash), so strategies hold BIL explicitly to earn T-bill returns. |
 | Short ETF histories | Optional pre-inception proxies (e.g. VUSTX before TLT) extend tests through 2000-2002. Proxy exposure is reported and an `etf_era` variant re-runs without it. |
 | Survivorship | Universes are ETFs rather than today's index constituents. |
+| Rebalance timing luck | The suite re-runs every monthly strategy deciding 5 and 10 sessions early. `execution.tranches: N` splits a strategy into N sub-portfolios rebalancing on staggered days (Hoffstein, Faber & Braun), identically in backtest and live. |
+| Data gaps | An order whose symbol has no price on the fill day (a proxy gap or halt) is re-tried on the next sessions instead of silently dropped. |
 | Overfitting | Published default parameters, post-publication (out-of-sample) split, a parameter-sensitivity grid, rebalance-timing-luck shifts, bootstrap CIs, and the Probabilistic and Deflated Sharpe Ratios. |
 
 ## Adding a strategy

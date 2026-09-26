@@ -28,6 +28,7 @@ from trader.config import RunConfig
 from trader.data.loader import DataLoader
 from trader.data.market_data import MarketData
 from trader.data.providers import make_provider
+from trader.data.proxies import proxies_for
 from trader.strategy.base import Strategy
 from trader.strategy.schedule import Daily
 
@@ -53,7 +54,10 @@ def load_market_data(
     strategy: Strategy, run: RunConfig, extra: list[str] | None = None
 ) -> tuple[MarketData, TradingCalendar]:
     provider = make_provider(run.data.provider, run.data.cache_dir, offline=run.data.offline)
-    loader = DataLoader(provider, proxies=run.proxies_for(strategy))
+    proxies = run.proxies_for(strategy)
+    if run.data.use_proxies and extra:
+        proxies = {**proxies_for(extra), **proxies}
+    loader = DataLoader(provider, proxies=proxies)
     symbols = [*strategy.data_symbols(), run.backtest.benchmark, *(extra or [])]
     end = pd.Timestamp(run.backtest.end) if run.backtest.end else pd.Timestamp.today().normalize()
     calendar = TradingCalendar.nyse(start="1970-01-01", end=end + pd.Timedelta(days=400))
@@ -150,10 +154,23 @@ def suite_variants(
     return v
 
 
-def _run_variant(args: tuple) -> tuple[str, dict[str, Any] | str]:
-    name, cls, params, data, calendar, cfg = args
+def suite_symbols(strategy: Strategy) -> list[str]:
+    """Symbols needed by parameter variants but not by the default parameters."""
+    needed: list[str] = []
+    for name, values in strategy.param_grid.items():
+        for val in values:
+            try:
+                needed.extend(strategy.with_params(**{name: val}).data_symbols())
+            except Exception as err:  # an invalid combination fails later, visibly
+                log.debug("variant %s=%s: %s", name, val, err)
+    base = set(strategy.data_symbols())
+    return [s for s in dict.fromkeys(needed) if s not in base]
+
+
+def _run_variant(args: tuple) -> tuple[str, dict[str, Any] | str, pd.Series | None]:
+    name, strategy, data, calendar, cfg = args
     try:
-        result = Backtester(cls(**params), data, calendar, cfg).run()
+        result = Backtester(strategy, data, calendar, cfg).run()
         return name, _variant_summary(result), result.returns
     except Exception as err:  # a failing variant should not sink the suite
         return name, f"error: {err}", None
@@ -169,9 +186,8 @@ def run_suite(
 ) -> dict[str, Any]:
     """Run every robustness variant. Daily returns are collected into ``returns_out``."""
     variants = suite_variants(strategy, base, data)
-    cls = type(strategy)
     jobs = [
-        (name, cls, {**strategy.param_dict(), **ov}, data, calendar, cfg)
+        (name, strategy.with_params(**ov) if ov else strategy, data, calendar, cfg)
         for name, (ov, cfg, _) in variants.items()
     ]
     workers = workers or min(len(jobs), max(1, (os.cpu_count() or 2) - 1))
@@ -193,7 +209,8 @@ def backtest(
 ) -> BacktestResult:
     """Load data, run the base backtest, evaluate it and (optionally) the robustness suite."""
     strategy = run.build_strategy()
-    data, calendar = load_market_data(strategy, run)
+    extra = suite_symbols(strategy) if suite else None
+    data, calendar = load_market_data(strategy, run, extra=extra)
     cfg = run.backtest_config(**overrides)
     result = run_one(strategy, data, calendar, cfg)
     result.metrics = evaluate(result)
