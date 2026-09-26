@@ -2,6 +2,16 @@
 
 A daily-bar algorithmic trading harness. It backtests strategies realistically, compares them side by side, and runs each strategy as its own container against Alpaca.
 
+## Results
+
+Twelve published strategies were researched, implemented and backtested from 2000 to 2026 against SPY and 60/40, with robustness suites, deflated Sharpe ratios, and out-of-sample splits at each source's publication date. Start with **[docs/results.md](docs/results.md)**, which has the findings and the recommended deployment. The interactive reports are in `reports/`:
+
+- `comparison.html`: the main comparison
+- `comparison-tranched.html`: timing-luck-free versions
+- `comparison-etf-era.html`: real ETF data only
+
+The research behind the strategy selection is in [docs/research/](docs/research/README.md).
+
 ## Quick start
 
 ```sh

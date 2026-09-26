@@ -1,0 +1,82 @@
+{
+  "costs_0x": {
+    "description": "all trading costs x0",
+    "metrics": {
+      "cagr": 0.1236035624498153,
+      "volatility": 0.19717396992092934,
+      "sharpe": 0.6198802642500815,
+      "sortino": 0.8749217579417923,
+      "max_drawdown": -0.4716418752439794,
+      "calmar": 0.2620707976489056,
+      "turnover_annual": 0.02746232487055168,
+      "cost_drag_annual": 0.0,
+      "sharpe_daily": 0.03904878623435042,
+      "start": "2008-07-01",
+      "end": "2026-09-25"
+    }
+  },
+  "costs_2x": {
+    "description": "all trading costs x2",
+    "metrics": {
+      "cagr": 0.12355038161059873,
+      "volatility": 0.1970966190802164,
+      "sharpe": 0.6198061514315387,
+      "sortino": 0.8747952332986146,
+      "max_drawdown": -0.4713980202534671,
+      "calmar": 0.2620935521624945,
+      "turnover_annual": 0.027447918571479105,
+      "cost_drag_annual": 7.555273077455168e-06,
+      "sharpe_daily": 0.03904411756561647,
+      "start": "2008-07-01",
+      "end": "2026-09-25"
+    }
+  },
+  "costs_4x": {
+    "description": "all trading costs x4",
+    "metrics": {
+      "cagr": 0.12354742364629079,
+      "volatility": 0.19715962998084874,
+      "sharpe": 0.619657585997858,
+      "sortino": 0.8745851053289315,
+      "max_drawdown": -0.4715838128187325,
+      "calmar": 0.26198402126618364,
+      "turnover_annual": 0.027458893348996687,
+      "cost_drag_annual": 1.5112624502859148e-05,
+      "sharpe_daily": 0.03903475882297505,
+      "start": "2008-07-01",
+      "end": "2026-09-25"
+    }
+  },
+  "exec_next_close": {
+    "description": "fill at next close instead of next open",
+    "metrics": {
+      "cagr": 0.12390230189358609,
+      "volatility": 0.1945446141133078,
+      "sharpe": 0.6269844941979146,
+      "sortino": 0.8847951282828076,
+      "max_drawdown": -0.4637352323910241,
+      "calmar": 0.2671832831306442,
+      "turnover_annual": 0.026985783486795163,
+      "cost_drag_annual": 3.679868802838194e-06,
+      "sharpe_daily": 0.03949631065574528,
+      "start": "2008-07-01",
+      "end": "2026-09-25"
+    }
+  },
+  "delay_2": {
+    "description": "fills one extra session after the signal",
+    "metrics": {
+      "cagr": 0.1238489701419514,
+      "volatility": 0.19561016682085156,
+      "sharpe": 0.6243863057912284,
+      "sortino": 0.8812680632887425,
+      "max_drawdown": -0.46700286308963257,
+      "calmar": 0.265199594971607,
+      "turnover_annual": 0.02718468216417718,
+      "cost_drag_annual": 3.716158254458641e-06,
+      "sharpe_daily": 0.03933264017042664,
+      "start": "2008-07-01",
+      "end": "2026-09-25"
+    }
+  }
+}

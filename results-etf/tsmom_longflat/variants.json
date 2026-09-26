@@ -1,0 +1,226 @@
+{
+  "costs_0x": {
+    "description": "all trading costs x0",
+    "metrics": {
+      "cagr": 0.04267300877969582,
+      "volatility": 0.05060237943530662,
+      "sharpe": 0.5785973369611931,
+      "sortino": 0.8026192854636618,
+      "max_drawdown": -0.10336350238926362,
+      "calmar": 0.41284406771541704,
+      "turnover_annual": 1.4406688711365085,
+      "cost_drag_annual": 0.0,
+      "sharpe_daily": 0.03644820625817993,
+      "start": "2008-07-01",
+      "end": "2026-09-25"
+    }
+  },
+  "costs_2x": {
+    "description": "all trading costs x2",
+    "metrics": {
+      "cagr": 0.040970541804203675,
+      "volatility": 0.050613894329968975,
+      "sharpe": 0.5461778727799237,
+      "sortino": 0.7565554988207828,
+      "max_drawdown": -0.10382288417786478,
+      "calmar": 0.39461956897686207,
+      "turnover_annual": 1.441900870987713,
+      "cost_drag_annual": 0.0016573048858336728,
+      "sharpe_daily": 0.034405971975760764,
+      "start": "2008-07-01",
+      "end": "2026-09-25"
+    }
+  },
+  "costs_4x": {
+    "description": "all trading costs x4",
+    "metrics": {
+      "cagr": 0.03938721602637241,
+      "volatility": 0.05061633765426415,
+      "sharpe": 0.5160712358781343,
+      "sortino": 0.714161190662992,
+      "max_drawdown": -0.1038661182778664,
+      "calmar": 0.3792113990531763,
+      "turnover_annual": 1.440535321502682,
+      "cost_drag_annual": 0.0033068865983724148,
+      "sharpe_daily": 0.032509432117316606,
+      "start": "2008-07-01",
+      "end": "2026-09-25"
+    }
+  },
+  "exec_next_close": {
+    "description": "fill at next close instead of next open",
+    "metrics": {
+      "cagr": 0.040966456141744434,
+      "volatility": 0.05067414479254152,
+      "sharpe": 0.5455203100099426,
+      "sortino": 0.7561820508945144,
+      "max_drawdown": -0.0997788227533205,
+      "calmar": 0.4105726547107525,
+      "turnover_annual": 1.4409436062049077,
+      "cost_drag_annual": 0.0008280912636214018,
+      "sharpe_daily": 0.034364549414789704,
+      "start": "2008-07-01",
+      "end": "2026-09-25"
+    }
+  },
+  "delay_2": {
+    "description": "fills one extra session after the signal",
+    "metrics": {
+      "cagr": 0.04124157735504275,
+      "volatility": 0.050773586490761156,
+      "sharpe": 0.5497628301373549,
+      "sortino": 0.7624017463248107,
+      "max_drawdown": -0.09860316332479357,
+      "calmar": 0.418258156882809,
+      "turnover_annual": 1.4406047630516683,
+      "cost_drag_annual": 0.0008281430060111051,
+      "sharpe_daily": 0.034631803062154444,
+      "start": "2008-07-01",
+      "end": "2026-09-25"
+    }
+  },
+  "shift_5": {
+    "description": "decide 5 sessions before the scheduled day (timing luck)",
+    "metrics": {
+      "cagr": 0.037661561942702315,
+      "volatility": 0.05339267609824875,
+      "sharpe": 0.46091869635437693,
+      "sortino": 0.6161637644111432,
+      "max_drawdown": -0.16641325284373476,
+      "calmar": 0.22631347743720415,
+      "turnover_annual": 1.4821771186161912,
+      "cost_drag_annual": 0.0008463311927090494,
+      "sharpe_daily": 0.029035148694613683,
+      "start": "2008-07-01",
+      "end": "2026-09-25"
+    }
+  },
+  "shift_10": {
+    "description": "decide 10 sessions before the scheduled day (timing luck)",
+    "metrics": {
+      "cagr": 0.037427051708147197,
+      "volatility": 0.05272772953518531,
+      "sharpe": 0.4617812137994677,
+      "sortino": 0.6167657972527724,
+      "max_drawdown": -0.1602809150156702,
+      "calmar": 0.2335090968534093,
+      "turnover_annual": 1.403684193763201,
+      "cost_drag_annual": 0.0008036960495469989,
+      "sharpe_daily": 0.02908948218654618,
+      "start": "2008-07-01",
+      "end": "2026-09-25"
+    }
+  },
+  "param_lookback_months=3": {
+    "description": "lookback_months = 3 (default 12)",
+    "metrics": {
+      "cagr": 0.04392154233293599,
+      "volatility": 0.050147500496007774,
+      "sharpe": 0.6071349316923724,
+      "sortino": 0.853643574846694,
+      "max_drawdown": -0.09101284292849288,
+      "calmar": 0.4825862034377318,
+      "turnover_annual": 2.7956343269681674,
+      "cost_drag_annual": 0.0015402597897800142,
+      "sharpe_daily": 0.03824590575043345,
+      "start": "2008-07-01",
+      "end": "2026-09-25"
+    }
+  },
+  "param_lookback_months=6": {
+    "description": "lookback_months = 6 (default 12)",
+    "metrics": {
+      "cagr": 0.0405464625524119,
+      "volatility": 0.0493967430001342,
+      "sharpe": 0.5500915889809324,
+      "sortino": 0.7659864899089389,
+      "max_drawdown": -0.1035216972400631,
+      "calmar": 0.3916711533272692,
+      "turnover_annual": 1.967372671234522,
+      "cost_drag_annual": 0.0011073689459989368,
+      "sharpe_daily": 0.03465251292266442,
+      "start": "2008-07-01",
+      "end": "2026-09-25"
+    }
+  },
+  "param_lookback_months=9": {
+    "description": "lookback_months = 9 (default 12)",
+    "metrics": {
+      "cagr": 0.03708506492563557,
+      "volatility": 0.05292281302463659,
+      "sharpe": 0.45403035783769397,
+      "sortino": 0.6165929549238535,
+      "max_drawdown": -0.16106505682885142,
+      "calmar": 0.2302489792372678,
+      "turnover_annual": 1.8891299489609406,
+      "cost_drag_annual": 0.0010720760963831206,
+      "sharpe_daily": 0.028601224155052476,
+      "start": "2008-07-01",
+      "end": "2026-09-25"
+    }
+  },
+  "param_vol_com=20": {
+    "description": "vol_com = 20 (default 60)",
+    "metrics": {
+      "cagr": 0.04208152249703612,
+      "volatility": 0.0506346190772454,
+      "sharpe": 0.567035087639449,
+      "sortino": 0.7869516977668238,
+      "max_drawdown": -0.10093308510455079,
+      "calmar": 0.41692496026893744,
+      "turnover_annual": 1.6802923714909186,
+      "cost_drag_annual": 0.0009743855435068623,
+      "sharpe_daily": 0.03571985301289755,
+      "start": "2008-07-01",
+      "end": "2026-09-25"
+    }
+  },
+  "param_vol_com=120": {
+    "description": "vol_com = 120 (default 60)",
+    "metrics": {
+      "cagr": 0.041472561873207026,
+      "volatility": 0.05042535776798801,
+      "sharpe": 0.557614607174306,
+      "sortino": 0.7727356473615935,
+      "max_drawdown": -0.10165504358621069,
+      "calmar": 0.40797347982085463,
+      "turnover_annual": 1.3708216102596353,
+      "cost_drag_annual": 0.0007842628152198625,
+      "sharpe_daily": 0.03512641852381397,
+      "start": "2008-07-01",
+      "end": "2026-09-25"
+    }
+  },
+  "param_signal=blend": {
+    "description": "signal = blend (default 12)",
+    "metrics": {
+      "cagr": 0.03916370241603939,
+      "volatility": 0.044977514365610954,
+      "sharpe": 0.569942990756221,
+      "sortino": 0.7944507786236442,
+      "max_drawdown": -0.07863254995941904,
+      "calmar": 0.49805967676555235,
+      "turnover_annual": 2.6485148775364307,
+      "cost_drag_annual": 0.001481258127535125,
+      "sharpe_daily": 0.03590303369107965,
+      "start": "2008-07-01",
+      "end": "2026-09-25"
+    }
+  },
+  "param_trend_filter=False": {
+    "description": "trend_filter = False (default True)",
+    "metrics": {
+      "cagr": 0.0499892266230344,
+      "volatility": 0.08142228130506347,
+      "sharpe": 0.47047776323344825,
+      "sortino": 0.6608063213519952,
+      "max_drawdown": -0.21293635335940786,
+      "calmar": 0.2347613539650476,
+      "turnover_annual": 0.3127573787112636,
+      "cost_drag_annual": 0.0001945411337231832,
+      "sharpe_daily": 0.029637313307181706,
+      "start": "2008-07-01",
+      "end": "2026-09-25"
+    }
+  }
+}

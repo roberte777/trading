@@ -1,17 +1,23 @@
-# One container per strategy, all from the same image.
+# One container per strategy, all from the same image. PAPER TRADING by default.
 #
-# Add a strategy: copy a service block, change the service name, TRADER_STRATEGY,
-# the env file and the volume. Remove one: delete its block
-# (`docker compose up -d --remove-orphans`).
+# The three services below are the shortlist from reports/comparison.md and
+# docs/results.md. Monthly strategies run as 4 staggered tranches
+# (configs/tranched/*.yaml) so results don't hinge on one rebalance day.
 #
-#   cp deploy/env/example.env deploy/env/sixty-forty.env   # fill in paper keys
+#   cp deploy/env/example.env deploy/env/aaa.env     # one Alpaca PAPER account per service
+#   cp deploy/env/example.env deploy/env/tsmom.env
+#   cp deploy/env/example.env deploy/env/volspy.env
 #   docker compose -f deploy/docker-compose.yml up -d --build
-#   docker compose -f deploy/docker-compose.yml logs -f sixty-forty
+#   docker compose -f deploy/docker-compose.yml logs -f aaa
 #
-# Accounts: Alpaca gives each user up to 3 paper accounts and 1 live account.
-# Give each strategy its own paper account (account_mode: dedicated, the default),
-# or share one account with TRADER_ACCOUNT_MODE=shared plus a TRADER_ALLOCATION
-# per container (each container then trades only its own ledger).
+# Add a strategy: copy a service block, change the name, TRADER_CONFIG (or
+# TRADER_STRATEGY for configs/strategies/<name>.yaml), env file and volume.
+# Remove one: delete its block, then `docker compose up -d --remove-orphans`.
+#
+# Accounts: Alpaca gives each user 3 paper accounts, so each service below gets
+# its own (account_mode: dedicated). One live account later means switching to
+# TRADER_ACCOUNT_MODE=shared with a TRADER_ALLOCATION (dollars) per service; each
+# container then trades only its own ledger (see docs/deploy.md).
 
 x-trader: &trader
   image: trader:latest
@@ -23,17 +29,33 @@ x-trader: &trader
     options: { max-size: "10m", max-file: "5" }
 
 services:
-  sixty-forty:
+  aaa:
     <<: *trader
     environment:
-      TRADER_STRATEGY: sixty_forty
+      TRADER_CONFIG: /app/configs/tranched/adaptive_asset_allocation_x4.yaml
       ALPACA_PAPER: "true"
-      # TRADER_DRY_RUN: "true"          # plan and log orders without sending them
-      # TRADER_BROKER: local            # simulated account; no keys needed
-      # TRADER_ACCOUNT_MODE: shared
-      # TRADER_ALLOCATION: "25000"
-    env_file: [env/sixty-forty.env]
-    volumes: [sixty-forty-state:/state]
+      # TRADER_DRY_RUN: "true"       # plan and log orders without sending them
+      # TRADER_BROKER: local         # simulated account, no keys needed
+    env_file: [env/aaa.env]
+    volumes: [aaa-state:/state]
+
+  tsmom:
+    <<: *trader
+    environment:
+      TRADER_CONFIG: /app/configs/tranched/tsmom_longflat_x4.yaml
+      ALPACA_PAPER: "true"
+    env_file: [env/tsmom.env]
+    volumes: [tsmom-state:/state]
+
+  volspy:
+    <<: *trader
+    environment:
+      TRADER_CONFIG: /app/configs/tranched/vol_managed_spy_x4.yaml
+      ALPACA_PAPER: "true"
+    env_file: [env/volspy.env]
+    volumes: [volspy-state:/state]
 
 volumes:
-  sixty-forty-state:
+  aaa-state:
+  tsmom-state:
+  volspy-state:
