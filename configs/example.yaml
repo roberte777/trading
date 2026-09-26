@@ -27,7 +27,8 @@ backtest:
   end: null                    # null = latest data
   initial_capital: 100000
   costs:
-    slippage_bps: 5            # adverse fill vs official open/close (half-spread + impact)
+    slippage_bps: 5            # adverse fill vs official open/close for symbols not in the tier map
+    # symbol_slippage_bps: {}  # per-symbol bps; default = liquidity tiers (2/4/6 bps), {} = flat
     commission_per_share: 0.0  # Alpaca: commission-free US equities via API
     sec_fee_rate: 0.0000206    # SEC Section 31: $20.60 per $1M sold (since 2026-04-04)
     taf_per_share: 0.000195    # FINRA TAF, $ per share sold
