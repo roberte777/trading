@@ -101,6 +101,8 @@ The strategy decides at the close of the last session of each month (`MonthEnd()
 
 ## Results
 
+> **Note:** the numbers in this section come from the strategy's own branch run, which used a flat 5 bps slippage on every fill and an earlier harness version. The final numbers, from the tiered 2/4/6 bps cost model with the harness fixes applied, are in [`reports/comparison.md`](../../reports/comparison.md) and `results/<strategy>/summary.json` on the comparison branch. Conclusions are unchanged unless noted there.
+
 Source: `results/adaptive_asset_allocation/summary.json`. Full period 2000-01-03 → 2026-09-25 (26.7 years), next-open fills, base costs. "Sharpe" is the excess-return Sharpe ratio (over T-bills).
 
 | Metric | Full period | In-sample (2000-01 → 2012-05-01) | Out-of-sample (2012-05-02 → 2026-09) |

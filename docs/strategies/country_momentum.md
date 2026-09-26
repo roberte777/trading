@@ -86,6 +86,8 @@ The universe is AMP's 18 developed markets. Portugal is missing: PGAL is deliste
 
 ## Results
 
+> **Note:** the numbers in this section come from the strategy's own branch run, which used a flat 5 bps slippage on every fill and an earlier harness version. The final numbers, from the tiered 2/4/6 bps cost model with the harness fixes applied, are in [`reports/comparison.md`](../../reports/comparison.md) and `results/<strategy>/summary.json` on the comparison branch. Conclusions are unchanged unless noted there.
+
 Base run: `trader backtest configs/strategies/country_momentum.yaml --suite --offline --workers 2`, from 2000-01-03 to 2026-09-25 (26.7 years). Source: `results/country_momentum/summary.json`.
 
 ### Headline

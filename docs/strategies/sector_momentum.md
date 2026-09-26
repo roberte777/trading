@@ -93,6 +93,8 @@ Schedule: last session of each month (`MonthEnd()`). Decisions are made at that 
 
 ## Results
 
+> **Note:** the numbers in this section come from the strategy's own branch run, which used a flat 5 bps slippage on every fill and an earlier harness version. The final numbers, from the tiered 2/4/6 bps cost model with the harness fixes applied, are in [`reports/comparison.md`](../../reports/comparison.md) and `results/<strategy>/summary.json` on the comparison branch. Conclusions are unchanged unless noted there.
+
 Run: `trader backtest configs/strategies/sector_momentum.yaml --suite --offline --workers 2 --out results/sector_momentum`. Window 2000-01-03 → 2026-09-25 (26.7 years). Default costs (5 bps slippage plus SEC/TAF/CAT fees), next-open fills, whole shares. The benchmark is SPY buy-and-hold.
 
 ### Headline metrics (`results/sector_momentum/summary.json`)

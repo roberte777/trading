@@ -93,6 +93,8 @@ Strategy `turn_of_month`, class `TurnOfTheMonth` in `src/trader/strategies/turn_
 
 ## Results
 
+> **Note:** the numbers in this section come from the strategy's own branch run, which used a flat 5 bps slippage on every fill and an earlier harness version. The final numbers, from the tiered 2/4/6 bps cost model with the harness fixes applied, are in [`reports/comparison.md`](../../reports/comparison.md) and `results/<strategy>/summary.json` on the comparison branch. Conclusions are unchanged unless noted there.
+
 Backtest period: 2000-01-03 to 2026-09-25 (26.7 years), `next_open`, default costs. Source: `results/turn_of_month/summary.json`.
 
 ### Headline metrics

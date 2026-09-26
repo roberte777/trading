@@ -108,6 +108,8 @@ Proxies come from `proxies_for(UNIVERSE)`. The "eligible from" column is the fir
 
 ## Results
 
+> **Note:** the numbers in this section come from the strategy's own branch run, which used a flat 5 bps slippage on every fill and an earlier harness version. The final numbers, from the tiered 2/4/6 bps cost model with the harness fixes applied, are in [`reports/comparison.md`](../../reports/comparison.md) and `results/<strategy>/summary.json` on the comparison branch. Conclusions are unchanged unless noted there.
+
 Run: `trader backtest configs/strategies/risk_parity_erc.yaml --suite --offline --workers 2 --out results/risk_parity_erc` (data through 2026-09-25).
 
 ### Headline (2000-01-03 → 2026-09-25, 26.7 years)

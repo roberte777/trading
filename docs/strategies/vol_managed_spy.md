@@ -66,6 +66,8 @@ The backtest window is 2000-01-03 → 2026-09-25. In it, SPY is always the real 
 
 ## Results
 
+> **Note:** the numbers in this section come from the strategy's own branch run, which used a flat 5 bps slippage on every fill and an earlier harness version. The final numbers, from the tiered 2/4/6 bps cost model with the harness fixes applied, are in [`reports/comparison.md`](../../reports/comparison.md) and `results/<strategy>/summary.json` on the comparison branch. Conclusions are unchanged unless noted there.
+
 Backtest: 2000-01-03 → 2026-09-25 (26.7 years), next-open fills, 5 bp slippage, whole shares. Benchmark: buy-and-hold SPY through the same engine.
 
 ### Headline (`summary.json`)

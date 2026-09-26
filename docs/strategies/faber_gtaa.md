@@ -80,6 +80,8 @@ About 15.8% of gross exposure-days are held in proxy data (`proxy_share`). The `
 
 ## Results
 
+> **Note:** the numbers in this section come from the strategy's own branch run, which used a flat 5 bps slippage on every fill and an earlier harness version. The final numbers, from the tiered 2/4/6 bps cost model with the harness fixes applied, are in [`reports/comparison.md`](../../reports/comparison.md) and `results/<strategy>/summary.json` on the comparison branch. Conclusions are unchanged unless noted there.
+
 Run with `trader backtest configs/strategies/faber_gtaa.yaml --suite --offline --workers 2 --out results/faber_gtaa`, from 2000-01-03 to 2026-09-25 (26.7 years). Execution is next open, with 5 bps slippage and SEC/FINRA fees. The benchmark is SPY buy & hold.
 
 ### Headline metrics (`summary.json`)
