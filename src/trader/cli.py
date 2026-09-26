@@ -86,7 +86,7 @@ def cmd_backtest(args: argparse.Namespace) -> int:
         run = dataclasses.replace(run, data=dataclasses.replace(run.data, use_proxies=False))
     overrides = {k: v for k, v in {"start": args.start, "end": args.end}.items() if v}
     result = backtest(run, suite=args.suite, workers=args.workers, **overrides)
-    out = Path(args.out or f"results/{run.strategy}")
+    out = Path(args.out or f"results/{result.strategy}")
     result.save(out)
     m = result.metrics
     print(f"\n{result.title}  ({m['start']} → {m['end']}, {m['years']:.1f}y)")
