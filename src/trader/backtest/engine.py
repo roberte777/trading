@@ -228,6 +228,11 @@ class Backtester:
                 for queued in pending.values():
                     for o in queued:
                         projected[col[o.symbol]] += o.qty
+                if not cfg.rules.allow_short:
+                    # Fills can come in smaller than ordered (cash scaling, sell caps), so
+                    # a queued sell can overshoot the eventual holding. A long-only book
+                    # never goes below zero; don't let the planner "cover" a phantom short.
+                    projected = np.maximum(projected, 0.0)
                 positions = {syms[j]: float(projected[j]) for j in np.flatnonzero(projected)}
                 weights = {syms[j]: float(value[j] / equity) for j in np.flatnonzero(held)}
                 ctx = Context(

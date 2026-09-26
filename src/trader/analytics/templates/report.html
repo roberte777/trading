@@ -934,10 +934,11 @@ function methods() {
   const a = P.assumptions || {};
   const costs = a.costs || {};
   const rules = a.rules || {};
+  const tiered = Object.keys(costs.symbol_slippage_bps || {}).length > 0;
   const items = [
     `Common window ${P.window.start} → ${P.window.end} (${P.window.years.toFixed(1)} years). Every strategy is measured over exactly these dates.`,
     `Signals use data up to the close of day t. Orders fill at the ${a.execution === "next_close" ? "close" : "open"} of day t+${a.delay || 1}, matching Alpaca ${a.execution === "next_close" ? "market-on-close (cls)" : "market-on-open (opg)"} orders.`,
-    `Costs: ${costs.slippage_bps} bps adverse slippage per fill, plus FINRA TAF (${costs.taf_per_share}/share sold) and SEC fees (${costs.sec_fee_rate} of sale value). Alpaca charges no commission.`,
+    `Costs: ${tiered ? "adverse slippage on every fill by liquidity tier: 2 bps for the most liquid ETFs (SPY, QQQ, TLT, IEF, BIL, GLD…), 4 bps for EFA/EEM/sector ETFs, 6 bps for thin funds (DBC, GSG, country ETFs), " + costs.slippage_bps + " bps otherwise" : costs.slippage_bps + " bps adverse slippage per fill"}, plus FINRA TAF ($${costs.taf_per_share}/share sold), SEC fees (${(costs.sec_fee_rate * 1e6).toFixed(2)} $/M sold) and the CAT fee. Alpaca charges no commission.`,
     `${rules.fractional ? "Fractional" : "Whole"}-share sizing from $${(a.initial_capital || 0).toLocaleString()} starting capital. No leverage (gross ≤ ${rules.max_gross || 1}). Idle cash ${a.cash_interest ? "earns T-bill rates" : "earns nothing, so strategies hold BIL for T-bill returns"}.`,
     `Data: ${a.data_provider || "yahoo"} total-return (split- and dividend-adjusted) daily bars.${a.use_proxies ? " Before each ETF existed, its history is extended with an older mutual fund or index (the “Proxy data” column shows the share of exposure that was synthetic; the “ETF era only” variant re-runs without it)." : ""}`,
     `Sharpe ratios are excess over the 13-week T-bill (^IRX). The Deflated Sharpe Ratio (Bailey & López de Prado 2014) accounts for ${P.n_trials} trials (every strategy and robustness variant run). Their returns have an average correlation of ${num(P.avg_trial_correlation)}, which makes about ${Math.round(P.n_trials_effective)} independent trials.`,
@@ -1007,7 +1008,7 @@ function init() {
   const n = S.filter((s) => !s.is_benchmark).length;
   document.getElementById("subtitle").textContent =
     `${n} strategies and ${S.length - n} benchmarks, ${fmtDate(P.window.start)} to ${fmtDate(P.window.end)} (${P.window.years.toFixed(1)} years), ` +
-    `${P.assumptions.execution === "next_close" ? "next-close" : "next-open"} fills, ${(P.assumptions.costs || {}).slippage_bps} bps slippage. Generated ${P.generated_at.replace("T", " ")} UTC.`;
+    `${P.assumptions.execution === "next_close" ? "next-close" : "next-open"} fills, ${Object.keys((P.assumptions.costs || {}).symbol_slippage_bps || {}).length ? "2–6 bps tiered" : (P.assumptions.costs || {}).slippage_bps + " bps"} slippage. Generated ${P.generated_at.replace("T", " ")} UTC.`;
   for (const s of sortedRows().filter((s) => !s.is_benchmark).slice(0, 3)) togglePin(s.id);
   tiles();
   board();

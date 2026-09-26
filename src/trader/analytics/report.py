@@ -370,13 +370,20 @@ def _num(x: Any, d: int = 2) -> str:
     return "–" if x is None else f"{x:.{d}f}"
 
 
+def _slippage_text(payload: dict[str, Any]) -> str:
+    costs = payload["assumptions"].get("costs") or {}
+    if costs.get("symbol_slippage_bps"):
+        return f"tiered 2/4/6 bps by liquidity ({costs.get('slippage_bps')} bps otherwise)"
+    return f"{costs.get('slippage_bps')} bps per side"
+
+
 def render_markdown(payload: dict[str, Any]) -> str:
     w = payload["window"]
     lines = [
         f"# {payload['title']}",
         "",
         f"Common window **{w['start']} → {w['end']}** ({w['years']:.1f} years). Execution: `{payload['assumptions'].get('execution')}`; "
-        f"slippage {(payload['assumptions'].get('costs') or {}).get('slippage_bps')} bps per side. "
+        f"slippage {_slippage_text(payload)}. "
         f"Deflated Sharpe uses {payload['n_trials']} trials "
         f"(≈{payload['n_trials_effective']:.0f} effective at average correlation {payload['avg_trial_correlation']:.2f}).",
         "",

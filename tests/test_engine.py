@@ -79,7 +79,12 @@ class Flipper(Strategy):
 def free(**kw) -> BacktestConfig:
     return BacktestConfig(
         costs=CostModel(
-            slippage_bps=0, sec_fee_rate=0, taf_per_share=0, taf_max=0, cat_per_share=0
+            slippage_bps=0,
+            symbol_slippage_bps={},
+            sec_fee_rate=0,
+            taf_per_share=0,
+            taf_max=0,
+            cat_per_share=0,
         ),
         **kw,
     )
@@ -89,7 +94,12 @@ def test_signal_fills_next_open_with_slippage(market):
     data, cal = market
     cfg = BacktestConfig(
         costs=CostModel(
-            slippage_bps=10, sec_fee_rate=0, taf_per_share=0, taf_max=0, cat_per_share=0
+            slippage_bps=10,
+            symbol_slippage_bps={},
+            sec_fee_rate=0,
+            taf_per_share=0,
+            taf_max=0,
+            cat_per_share=0,
         ),
         start="2006-01-03",
     )
@@ -200,6 +210,16 @@ def test_symbol_without_data_is_not_traded():
     res = Backtester(Both(), data, cal, free(start="2006-01-03")).run()
     tlt_trades = res.trades[res.trades["symbol"] == "TLT"]
     assert pd.to_datetime(tlt_trades["date"]).min() >= pd.Timestamp("2008-01-02")
+
+
+def test_projected_positions_never_go_negative_when_long_only(market):
+    data, cal = market
+    cfg = BacktestConfig(start="2006-01-03", delay=2)
+    res = Backtester(Flipper(), data, cal, cfg).run()
+    # A phantom short would produce buy orders for a symbol whose target is zero.
+    stray = res.trades[(res.trades["qty"] > 0) & (res.trades["target_weight"] == 0)]
+    assert stray.empty
+    assert (res.weights.to_numpy() >= -1e-12).all()
 
 
 def test_rejects_same_bar_execution():

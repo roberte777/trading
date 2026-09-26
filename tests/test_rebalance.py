@@ -55,3 +55,11 @@ def test_cost_model_fees_only_on_sells():
     assert c.fees(-1_000_000, 1) == pytest.approx(1_000_000 * 20e-6 + 10)
     assert c.scaled(2).slippage_bps == 20
     assert CostModel().fees(100, 50) == pytest.approx(100 * 0.000003)
+
+
+def test_default_slippage_is_tiered_by_liquidity():
+    c = CostModel()
+    assert c.slippage_for("SPY") == 2.0
+    assert c.slippage_for("EEM") == 4.0
+    assert c.slippage_for("DBC") == 6.0
+    assert c.slippage_for("ZZZZ") == 5.0
