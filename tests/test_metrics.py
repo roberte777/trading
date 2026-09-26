@@ -72,3 +72,16 @@ def test_bootstrap_ci_brackets_point_estimate():
     assert ci["sharpe"]["lo"] < point < ci["sharpe"]["hi"]
     assert ci["max_drawdown"]["hi"] <= 0
     assert 0 <= ci["sharpe_minus_benchmark"]["p_better"] <= 1
+
+
+def test_time_in_market_ignores_tbill_etfs():
+    from trader.analytics.metrics import trading_metrics
+
+    idx = pd.bdate_range("2020-01-01", periods=4)
+    daily = pd.DataFrame(
+        {"equity": 1.0, "gross": 1.0, "turnover": 0.0, "fees": 0.0, "slippage": 0.0}, index=idx
+    )
+    weights = pd.DataFrame({"SPY": [1.0, 0.0, 0.0, 0.5], "BIL": [0.0, 1.0, 1.0, 0.5]}, index=idx)
+    m = trading_metrics(daily, pd.DataFrame(), weights)
+    assert m["time_in_market"] == 0.5
+    assert m["avg_risk_exposure"] == pytest.approx(0.375)
